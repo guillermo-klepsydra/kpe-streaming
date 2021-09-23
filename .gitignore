@@ -39,6 +39,7 @@ Thumbs.db
 *.app
 *.exe
 *.war
+build/*
 
 # Large media files
 *.mp4
@@ -48,3 +49,6 @@ Thumbs.db
 *.mov
 *.wmv
 
+# Linux Temporary files
+*~
+#*

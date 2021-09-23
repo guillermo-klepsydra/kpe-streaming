@@ -1,0 +1,3 @@
+[submodule "kpsr-build"]
+	path = kpsr-build
+	url = git@bitbucket.org:kpsr-devs/kpsr-build.git
