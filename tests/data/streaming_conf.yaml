@@ -1,0 +1,31 @@
+streaming_configuration:
+  pool_size: 0
+  layer_event_loop_map:
+    sixth: 1
+    third: 2
+    6: 1
+    7: 3
+    1: 3
+    first: 0
+    fourth: 3
+    second: 1
+    2: 3
+    3: 2
+    8: 2
+    fifth: 0
+    4: 3
+    5: 2
+  number_of_cores: 2
+  non_critical_thread_pool_size: 32
+  number_of_parallel_threads: 0
+  parallised_layers: []
+  event_loop_core_map:
+    0:
+      - 0
+    1:
+      - 1
+    3:
+      - 1
+    2:
+      - 0
+  number_of_event_loops: 4
