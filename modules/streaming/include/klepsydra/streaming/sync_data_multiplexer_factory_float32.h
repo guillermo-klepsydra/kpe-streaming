@@ -22,16 +22,16 @@
 #include <klepsydra/core/container.h>
 #include <klepsydra/core/event_emitter_middleware_provider.h>
 
-#include <klepsydra/streaming/data_multiplexer_factory.h>
-#include <klepsydra/streaming/event_emitter_publish_subscribe_factory.h>
+#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
+#include <klepsydra/streaming/event_emitter_publish_subscribe_factory_float32.h>
 
 namespace kpsr {
 namespace streaming {
 
-class SyncDataMultiplexerFactory : public DataMultiplexerFactory
+class SyncDataMultiplexerFactoryFloat32 : public DataMultiplexerFactoryFloat32
 {
 public:
-    SyncDataMultiplexerFactory(kpsr::Container * container);
+    SyncDataMultiplexerFactoryFloat32(kpsr::Container * container);
 
     virtual kpsr::Publisher<DataBatchWithId<kpsr::streaming::F32AlignedVector>> * getPublisherF32Aligned(const std::string & stepName, const size_t vectorSize) override;
     virtual kpsr::Subscriber<DataBatchWithId<kpsr::streaming::F32AlignedVector>> * getSubscriberF32Aligned(const std::string & stepName, const size_t vectorSize) override;
@@ -43,7 +43,7 @@ public:
     virtual kpsr::Subscriber<DataBatchWithId<std::vector<float>>> * getSubscriberF32(const std::string & stepName, const size_t vectorSize) override;
 
 private:
-    EventEmitterPublishSubscribeFactory _testFactory;
+    EventEmitterPublishSubscribeFactoryFloat32 _testFactory;
 };
 }
 }

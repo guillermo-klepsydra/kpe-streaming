@@ -16,16 +16,17 @@
 *
 *****************************************************************************/
 
-#include <klepsydra/streaming/data_multiplexer_factory_impl.h>
+#include <klepsydra/streaming/data_multiplexer_factory_float32_impl.h>
 
 namespace kpsr {
 namespace streaming {
 
-    DataMultiplexerFactoryImpl::DataMultiplexerFactoryImpl(kpsr::Container * container)
-        : _container(container)
+    DataMultiplexerFactoryFloat32Impl::DataMultiplexerFactoryFloat32Impl(kpsr::Container * container)
+        : kpsr::Service(nullptr, "DataMultiplexerFactoryFloat32Service")
+        , _container(container)
     {}
 
-    DataMultiplexerPtr<kpsr::streaming::F32AlignedVector> DataMultiplexerFactoryImpl::getDataMultiplexerF32A(const std::string& stepName, const size_t vectorSize) {
+    DataMultiplexerPtr<kpsr::streaming::F32AlignedVector> DataMultiplexerFactoryFloat32Impl::getDataMultiplexerF32A(const std::string& stepName, const size_t vectorSize) {
         auto multiplexer = _dataMultiplexerProviderFactory.getDataMultiplexer<DataBatchWithId<F32AlignedVector>, DATA_MULTIPLEXER_SIZE>(stepName);
         if (multiplexer) {
             return multiplexer;
@@ -43,7 +44,7 @@ namespace streaming {
         }
     }
 
-    DataMultiplexerPtr<std::vector<float>> DataMultiplexerFactoryImpl::getDataMultiplexerF32(const std::string& stepName,
+    DataMultiplexerPtr<std::vector<float>> DataMultiplexerFactoryFloat32Impl::getDataMultiplexerF32(const std::string& stepName,
                                                                                              const size_t vectorSize) {
         auto multiplexer = _dataMultiplexerProviderFactory.getDataMultiplexer<DataBatchWithId<std::vector<float>>, DATA_MULTIPLEXER_SIZE>(stepName);
         if (multiplexer) {
@@ -62,7 +63,7 @@ namespace streaming {
         }
     }
 
-    DataMultiplexerPtr<std::vector<kpsr::streaming::F32AlignedVector>> DataMultiplexerFactoryImpl::getDataMultiplexerMF32A(const std::string& stepName,
+    DataMultiplexerPtr<std::vector<kpsr::streaming::F32AlignedVector>> DataMultiplexerFactoryFloat32Impl::getDataMultiplexerMF32A(const std::string& stepName,
                                                                                                  const size_t vectorSize,
                                                                                                  const size_t multiVectorSize) {
         auto multiplexer = _dataMultiplexerProviderFactory.getDataMultiplexer<DataBatchWithId<std::vector<F32AlignedVector>>, DATA_MULTIPLEXER_SIZE>(stepName);
@@ -85,34 +86,34 @@ namespace streaming {
         }
     }
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * DataMultiplexerFactoryImpl::getPublisherF32Aligned(const std::string & stepName, const size_t vectorSize) {
-        spdlog::debug("DataMultiplexerFactory::getPublisherF32Aligned: stepName: {}", stepName);
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * DataMultiplexerFactoryFloat32Impl::getPublisherF32Aligned(const std::string & stepName, const size_t vectorSize) {
+        spdlog::debug("DataMultiplexerFactoryFloat32::getPublisherF32Aligned: stepName: {}", stepName);
         return getDataMultiplexerF32A(stepName, vectorSize)->getPublisher();
     }
 
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * DataMultiplexerFactoryImpl::getSubscriberF32Aligned(const std::string& stepName, const size_t vectorSize) {
-        spdlog::debug("DataMultiplexerFactory::getSubscriberF32Aligned: stepName: {}", stepName);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * DataMultiplexerFactoryFloat32Impl::getSubscriberF32Aligned(const std::string& stepName, const size_t vectorSize) {
+        spdlog::debug("DataMultiplexerFactoryFloat32::getSubscriberF32Aligned: stepName: {}", stepName);
         return getDataMultiplexerF32A(stepName, vectorSize)->getSubscriber();
     }
 
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>> * DataMultiplexerFactoryImpl::getPublisherMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) {
-        spdlog::debug("DataMultiplexerFactory::getPublisherMF32Aligned: stepName: {}", stepName);
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>> * DataMultiplexerFactoryFloat32Impl::getPublisherMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) {
+        spdlog::debug("DataMultiplexerFactoryFloat32::getPublisherMF32Aligned: stepName: {}", stepName);
         return getDataMultiplexerMF32A(stepName, vectorSize, multiVectorSize)->getPublisher();
     }
 
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>> * DataMultiplexerFactoryImpl::getSubscriberMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) {
-        spdlog::debug("DataMultiplexerFactory::getSubscriberMF32Aligned: stepName: {}", stepName);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>> * DataMultiplexerFactoryFloat32Impl::getSubscriberMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) {
+        spdlog::debug("DataMultiplexerFactoryFloat32::getSubscriberMF32Aligned: stepName: {}", stepName);
         return getDataMultiplexerMF32A(stepName, vectorSize, multiVectorSize)->getSubscriber();
     }
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<float>>> * DataMultiplexerFactoryImpl::getPublisherF32(const std::string & stepName, const size_t vectorSize) {
-        spdlog::debug("DataMultiplexerFactory::getPublisherF32: stepName: {}", stepName);
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<float>>> * DataMultiplexerFactoryFloat32Impl::getPublisherF32(const std::string & stepName, const size_t vectorSize) {
+        spdlog::debug("DataMultiplexerFactoryFloat32::getPublisherF32: stepName: {}", stepName);
         return getDataMultiplexerF32(stepName, vectorSize)->getPublisher();
     }
 
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<float>>> * DataMultiplexerFactoryImpl::getSubscriberF32(const std::string & stepName, const size_t vectorSize) {
-        spdlog::debug("DataMultiplexerFactory::getSubscriberF32: stepName: {}", stepName);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<float>>> * DataMultiplexerFactoryFloat32Impl::getSubscriberF32(const std::string & stepName, const size_t vectorSize) {
+        spdlog::debug("DataMultiplexerFactoryFloat32::getSubscriberF32: stepName: {}", stepName);
         return getDataMultiplexerF32(stepName, vectorSize)->getSubscriber();
     }
 }
