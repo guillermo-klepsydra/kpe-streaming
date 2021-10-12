@@ -96,7 +96,7 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFileContainer) {
     environment.setPropertyInt("number_of_cores", 2);
     environment.setPropertyString("processor_intensive_layers", "max");
 
-    std::string yamlFile = std::string(TEST_DATA) + "/streaming_conf.yaml";
+    std::string yamlFile = std::string(TEST_DATA) + "/streaming_conf.json";
     environment.setPropertyString("streaming_conf_file", yamlFile);
 
     kpsr::streaming::StreamingFactoryProvider sut(&environment);

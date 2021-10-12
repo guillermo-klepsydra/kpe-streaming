@@ -54,11 +54,11 @@ size_t kpsr::streaming::DefaultStreamingPolicy::addStepToEventLoop(const std::st
     }
 }
 
-kpsr::streaming::YamlStreamingPolicy::YamlStreamingPolicy(const std::string &yamlFileName)
-    : StreamingPolicy(YAML::LoadFile(yamlFileName)[STREAMING_CONF_YAML_NODE].as<StreamingConfiguration>())
+kpsr::streaming::JsonStreamingPolicy::JsonStreamingPolicy(const std::string &jsonFileName)
+    : StreamingPolicy(StreamingConfiguration(jsonFileName))
 {}
 
-size_t kpsr::streaming::YamlStreamingPolicy::addStepToEventLoop(const std::string & stepName) {
+size_t kpsr::streaming::JsonStreamingPolicy::addStepToEventLoop(const std::string & stepName) {
     return _streamingConfiguration.stepIDEventLoopMap[stepName];
 }
 

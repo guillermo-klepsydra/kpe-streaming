@@ -69,13 +69,13 @@ public:
     std::vector<int> streamEventLoopDistribution;
 };
 
-class YamlStreamingPolicy : public StreamingPolicy {
+class JsonStreamingPolicy : public StreamingPolicy {
 public:
-    YamlStreamingPolicy(const std::string & yamlFileName);
-
+    JsonStreamingPolicy(const std::string& jsonFileName);
     virtual size_t addStepToEventLoop(const std::string & stepName) override;
 
 };
+
 }
 }
 

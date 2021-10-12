@@ -24,12 +24,20 @@
 
 #include <map>
 #include <vector>
-
-#include <yaml-cpp/yaml.h>
+#include <sstream>
 
 namespace kpsr {
 namespace streaming {
 
+const std::string POOL_SIZE = "pool_size";
+const std::string NUMBER_OF_CORES = "number_of_cores";
+const std::string NUMBER_OF_EVENT_LOOPS = "number_of_event_loops";
+const std::string NUMBER_OF_PARALLEL_THREADS = "number_of_parallel_threads";
+const std::string EVENT_LOOP_CORE_MAP = "event_loop_core_map";
+const std::string LAYER_EVENT_LOOP_MAP = "layer_event_loop_map";
+const std::string PARALLISED_LAYERS = "parallised_layers";
+    
+    
 class StreamingConfiguration {
 public:
 
@@ -41,6 +49,8 @@ public:
                            int numberOfParallelThreads,
                            const std::vector<std::string> & parallelisedSteps);
 
+    StreamingConfiguration(const std::string& jsonFileName);
+
     int poolSize;
     size_t numberOfCores;
     size_t numberOfEventLoops;
@@ -51,38 +61,16 @@ public:
     std::vector<std::string> parallelisedSteps;
 
     bool operator==(const StreamingConfiguration & rhs) const;
+
+    void loadJsonString(const std::string& jsonString);
+    std::string exportJsonString();
+private:
+    void loadJsonStream(std::istream& jsonStream);
+
+    template <class Archive>
+    void serialize(Archive& archive);
 };
 }
 }
 
-namespace YAML {
-template<>
-struct convert<kpsr::streaming::StreamingConfiguration> {
-    static Node encode(const kpsr::streaming::StreamingConfiguration& rhs) {
-        Node node;
-        node["pool_size"] = rhs.poolSize;
-        node["number_of_cores"] = rhs.numberOfCores;
-        node["number_of_event_loops"] = rhs.numberOfEventLoops;
-        node["non_critical_thread_pool_size"] = rhs.nonCriticalThreadPoolSize;
-        node["number_of_parallel_threads"] = rhs.numberOfParallelThreads;
-        node["event_loop_core_map"] = rhs.eventLoopCoreMap;
-        node["layer_event_loop_map"] = rhs.stepIDEventLoopMap;
-        node["parallised_layers"] = rhs.parallelisedSteps;
-        return node;
-    }
-
-    static bool decode(const Node& node, kpsr::streaming::StreamingConfiguration& rhs) {
-        rhs.poolSize = node["pool_size"].as<int>();
-        rhs.numberOfCores = node["number_of_cores"].as<size_t>();
-        rhs.numberOfEventLoops = node["number_of_event_loops"].as<size_t>();
-        rhs.nonCriticalThreadPoolSize = node["non_critical_thread_pool_size"].as<size_t>();
-        rhs.numberOfParallelThreads = node["number_of_parallel_threads"].as<int>();
-        rhs.eventLoopCoreMap = node["event_loop_core_map"].as<std::map<size_t, std::vector<int>>>();
-        rhs.stepIDEventLoopMap = node["layer_event_loop_map"].as<std::map<std::string, size_t>>();
-        rhs.parallelisedSteps = node["parallised_layers"].as<std::vector<std::string>>();
-
-        return true;
-    }
-};
-}
 #endif // STREAMING_CONFIGURATION_H
