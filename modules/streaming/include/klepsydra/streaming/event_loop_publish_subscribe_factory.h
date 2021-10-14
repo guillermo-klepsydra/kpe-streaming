@@ -19,7 +19,6 @@
 #ifndef PUBLISH_SUBCRIBE_EVENTLOOP_FACTORY_H
 #define PUBLISH_SUBCRIBE_EVENTLOOP_FACTORY_H
 
-#include <klepsydra/admin/check_license.h>
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
 #include <klepsydra/streaming/streaming_policy.h>
 

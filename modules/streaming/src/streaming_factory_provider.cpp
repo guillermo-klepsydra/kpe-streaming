@@ -16,7 +16,7 @@
 *
 *****************************************************************************/
 
-#include <klepsydra/core/yaml_environment.h>
+#include <klepsydra/core/configuration_environment.h>
 
 #include <klepsydra/streaming/streaming_factory_provider.h>
 
@@ -39,7 +39,6 @@ namespace streaming {
 StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN)
     : _container(nullptr)
     , _publishSubcriberFactory(nullptr)
-    , _pthreadpool(nullptr)
 {
     std::vector<std::string> parallisedLayers = {};
     _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(std::thread::hardware_concurrency(), 4, 4, 1, parallisedLayers);
@@ -55,9 +54,8 @@ StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN)
 StreamingFactoryProvider::StreamingFactoryProvider(const std::string & envFileName, kpsr::Container * container)
     : _container(container)
     , _publishSubcriberFactory(nullptr)
-    , _pthreadpool(nullptr)
 {
-    kpsr::YamlEnvironment environment(envFileName);
+    kpsr::ConfigurationEnvironment environment(envFileName);
 
     if (!_container) {
         _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(&environment);
@@ -69,7 +67,6 @@ StreamingFactoryProvider::StreamingFactoryProvider(const std::string & envFileNa
 StreamingFactoryProvider::StreamingFactoryProvider(kpsr::Environment * environment, kpsr::Container * container)
     : _container(container)
     , _publishSubcriberFactory(nullptr)
-    , _pthreadpool(nullptr)
 {
     if (!_container) {
         _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(environment);
@@ -120,18 +117,10 @@ void StreamingFactoryProvider::initForEnvironment(kpsr::Environment * environmen
     } else {
         std::string streamingConfigurationFile;
         environment->getPropertyString("streaming_conf_file", streamingConfigurationFile);
-        _streamingPolicy = std::make_unique<kpsr::streaming::YamlStreamingPolicy>(streamingConfigurationFile);
+        _streamingPolicy = std::make_unique<kpsr::streaming::JsonStreamingPolicy>(streamingConfigurationFile);
     }
 
     createFactories();
-
-    if (_streamingPolicy->getStreamingConfiguration().numberOfParallelThreads >=0) {
-        _pthreadpool = pthreadpool_create(_streamingPolicy->getStreamingConfiguration().numberOfParallelThreads);
-        if(_pthreadpool == nullptr) {
-            spdlog::error("kpsr::streaming::StreamingFactoryProvider: Could not create pthreadpool");
-            throw std::runtime_error("StreamingFactory could not create pthreadpool");
-        }
-    }
 
 }
 
@@ -157,34 +146,10 @@ StreamingFactoryProvider::~StreamingFactoryProvider() {
     // destroy publishSubscriberFactory first:
     _publishSubcriberFactory.reset();
     _dataMultiplexerFactory.reset();
-    if (_pthreadpool) {
-        pthreadpool_destroy(_pthreadpool);
-        _pthreadpool = nullptr;
-    }
 }
 
 std::shared_ptr<kpsr::streaming::PublishSubscribeFactory> & StreamingFactoryProvider::getPublishSubcriberFactory() {
     return _publishSubcriberFactory;
-}
-
-pthreadpool_t StreamingFactoryProvider::getThreadPoolForStep(const std::string & stepName) {
-    std::string effectiveStepName = stepName;
-    findAndReplaceAll(effectiveStepName, "/", "");
-
-    if (_streamingPolicy->getStreamingConfiguration().parallelisedSteps.empty()) {
-        spdlog::debug("Step {} will be parallelised.", stepName);
-        return _pthreadpool;
-    }
-
-    if (std::find(_streamingPolicy->getStreamingConfiguration().parallelisedSteps.begin(), 
-                  _streamingPolicy->getStreamingConfiguration().parallelisedSteps.end(), 
-                  effectiveStepName) != _streamingPolicy->getStreamingConfiguration().parallelisedSteps.end()) {
-        spdlog::debug("Step {} will be parallelised.", stepName);
-        return _pthreadpool;
-    }
-
-    spdlog::debug("Step {} will be not parallelised.", stepName);
-    return nullptr;
 }
 
 StreamingPolicy * StreamingFactoryProvider::getStreamingPolicy() {

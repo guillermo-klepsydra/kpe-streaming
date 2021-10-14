@@ -1,6 +1,6 @@
 #*************************************************************************
 #
-#                           Klepsydra STREAMING Modules
+#                           Klepsydra Streaming Modules
 #              Copyright (C) 2020-2022  Klepsydra Technologies GmbH
 #                            All Rights Reserved.
 #
@@ -41,8 +41,6 @@ TARGET_LINK_LIBRARIES(${PROJ_NAME}
   PUBLIC
   ${KLEPSYDRA_CORE_LIBRARIES}
   ${KPSR_ADMIN_CORE_LIBRARIES}
-  PRIVATE
-  pthreadpool
   )
 
 TARGET_INCLUDE_DIRECTORIES(${PROJ_NAME}

@@ -19,8 +19,6 @@
 #ifndef __STREAMING_FACTORY_PARSER_H__
 #define __STREAMING_FACTORY_PARSER_H__
 
-#include <pthreadpool.h>
-
 #include <klepsydra/streaming/visibility.h>
 #include <klepsydra/core/container.h>
 #include <klepsydra/streaming/streaming_policy.h>
@@ -44,8 +42,6 @@ public:
 
     StreamingPolicy * getStreamingPolicy();
 
-    pthreadpool_t getThreadPoolForStep(const std::string & streamName);
-
     void start();
     void stop();
 
@@ -65,7 +61,6 @@ private:
 
     std::shared_ptr<PublishSubscribeFactory> _publishSubcriberFactory;
     std::shared_ptr<DataMultiplexerFactory> _dataMultiplexerFactory;
-    pthreadpool_t _pthreadpool;
 };
 } // namespace streaming
 } // namespace kpsr
