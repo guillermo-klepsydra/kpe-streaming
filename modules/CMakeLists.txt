@@ -19,3 +19,5 @@
 
 # Add module code
 ADD_SUBDIRECTORY(streaming)
+
+add_core_export_target()
