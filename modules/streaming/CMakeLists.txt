@@ -54,3 +54,8 @@ INSTALL(TARGETS ${PROJ_NAME}
     EXPORT KlepsydraStreamingTargets
     DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     )
+INSTALL (DIRECTORY "include/klepsydra"
+   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+add_core_export_target(${PROJ_NAME})
