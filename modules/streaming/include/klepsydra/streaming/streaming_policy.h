@@ -25,7 +25,6 @@
 #include <vector>
 #include <functional>
 
-#include <yaml-cpp/yaml.h>
 #include <klepsydra/streaming/streaming_types.h>
 #include <klepsydra/streaming/streaming_configuration.h>
 

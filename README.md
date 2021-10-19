@@ -11,11 +11,11 @@ This repository containes the Streaming API for Klepsydra products.
 * Cmake 3.12 or above
 * gcc for C++11 5.4.0 or above.
 * Doxygen (optional)
-* yaml-cpp (0.5 or above)
 
 ## Klepsydra dependencies
 
-* kpsr-core with YAML support
+* kpsr-core
+* kpsr-admin with (optional) socket support
 
 
 ## Installation
