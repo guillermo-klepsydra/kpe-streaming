@@ -152,6 +152,10 @@ std::shared_ptr<kpsr::streaming::PublishSubscribeFactory> & StreamingFactoryProv
     return _publishSubcriberFactory;
 }
 
+std::shared_ptr<kpsr::streaming::DataMultiplexerFactory> & StreamingFactoryProvider::getDataMultiplexerFactory() {
+    return _dataMultiplexerFactory;
+}
+
 StreamingPolicy * StreamingFactoryProvider::getStreamingPolicy() {
     return _streamingPolicy.get();
 }
