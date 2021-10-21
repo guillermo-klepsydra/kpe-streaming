@@ -19,8 +19,6 @@
 SET(PROJ_NAME kpsr_${PROJ_MAIN_NAME})
 PROJECT(${PROJ_NAME})
 
-ADD_DEFINITIONS(-DKPSR_LICENSE_FILE="")
-
 # Source
 #---------------------------------------------------#
 FILE(GLOB ${PROJ_NAME}_SRC
