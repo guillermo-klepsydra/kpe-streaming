@@ -13,9 +13,6 @@ if(NOT TARGET klepsydra AND NOT KPSR_STREAMING_BINARY_DIR)
   include("${CMAKE_CURRENT_LIST_DIR}/KlepsydraStreamingTargets.cmake")
 endif()
 
-include(CMakeFindDependencyMacro)
-find_dependency(yaml-cpp 0.5)
-
 # These are IMPORTED targets created by KlepsydraStreamingTargets.cmake
 set(KPSR_STREAMING_CORE_LIBRARIES "@CORE_EXPORT_TARGETS@")
 
