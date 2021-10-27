@@ -31,6 +31,10 @@ if (KPSR_WITH_FREERTOS)
    include(${KPSR_BUILD_PATH}/freeRTOS/cmake/compiler.cmake)
 endif()
 
+IF(KPSR_RTEMS5_ZYNQ_ZC706)
+  include(${KPSR_BUILD_PATH}/rtems/rtems_zynq_zc706.cmake)
+ENDIF()
+
 SET(PROJ_MAIN_NAME "streaming")
 
 PROJECT(${PROJ_MAIN_NAME})
@@ -93,28 +97,26 @@ include(GNUInstallDirs)
 include(CheckCXXCompilerFlag)
 include(CheckIncludeFileCXX)
 
-IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "leon3")
-  enable_language(ASM)
-  # -Dsun is a hack in order to make cereal believe that we are on the Solaris
-  # platform, and disable the BSD extensions
-  SET(BUILD_SHARED_LIBS "OFF" FORCE)
-  SET(ARCH_FLAGS "-mcpu=leon3 -qbsp=leon3 -Dsun -D_GNU_SOURCE")
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH_FLAGS}")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH_FLAGS}")
-  SET(CMAKE_EXE_LINKER_FLAGS "--entry=__wrap_start")
-ELSEIF(KPSR_WITH_FREERTOS)
+IF (CMAKE_SYSTEM_PROCESSOR STREQUAL "leon3" OR (CMAKE_SYSTEM_PROCESSOR STREQUAL "rtems-arm5") OR KPSR_WITH_FREERTOS)
+  SET(MINIMAL_BUILD true)
+ELSE()
+  SET(MINIMAL_BUILD false)
+ENDIF()
+
+IF(KPSR_WITH_FREERTOS)
   SET(BUILD_SHARED_LIBS "OFF" CACHE PATH "Static libraries" FORCE)
   include(${KPSR_BUILD_PATH}/freeRTOS/cmake/zynq.cmake)
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions -faligned-new")
-
-ELSE()
+ELSEIF(NOT MINIMAL_BUILD)
   find_package(Threads REQUIRED)
   SET(BUILD_SHARED_LIBS "ON" FORCE)
 ENDIF()
 
 set (CMAKE_CXX_STANDARD 14)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_CXX_EXTENSIONS OFF)
 
 if (NOT APPLE)
     set(CMAKE_INSTALL_RPATH $ORIGIN)
@@ -199,7 +201,7 @@ find_package(KlepsydraAdmin REQUIRED)
 LINK_DIRECTORIES(${CMAKE_INSTALL_FULL_LIBDIR})
 
 ADD_SUBDIRECTORY(modules)
-IF((NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "leon3") AND (NOT KPSR_WITH_FREERTOS))
+IF(NOT MINIMAL_BUILD)
   ADD_SUBDIRECTORY(tests)
 ENDIF()
 
