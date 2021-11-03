@@ -20,6 +20,7 @@
 #define EVENT_EMITTER_FACTORY_H
 
 #include <map>
+#include <string>
 
 #include <klepsydra/core/event_emitter_middleware_provider.h>
 #include <klepsydra/streaming/streaming_types.h>

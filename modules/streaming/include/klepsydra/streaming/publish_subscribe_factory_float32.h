@@ -21,13 +21,15 @@
 
 #include <klepsydra/core/publisher.h>
 #include <klepsydra/core/subscriber.h>
+#include <klepsydra/core/service.h>
 #include <klepsydra/streaming/stream_internal_types.h>
 #include <klepsydra/streaming/streaming_types.h>
 
 namespace kpsr {
 namespace streaming {
 
-class PublishSubscribeFactory
+    
+class PublishSubscribeFactoryFloat32: virtual public kpsr::Service
 {
 public:
     
@@ -40,9 +42,8 @@ public:
     virtual kpsr::Publisher<DataBatchWithId <std::vector<float>>> * getPublisherF32(const std::string & stepName, const size_t vectorSize) = 0;
     virtual kpsr::Subscriber<DataBatchWithId<std::vector<float>>> * getSubscriberF32(const std::string & stepName, const size_t vectorSize = 0) = 0;
 
-    virtual void start() = 0;
-
-    virtual void stop() = 0;
+protected:
+    virtual void execute() override {}
 };
 
 } //streaming

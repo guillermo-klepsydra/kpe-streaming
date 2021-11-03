@@ -15,35 +15,19 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
+#ifndef STREAMING_TEST_FIXTURE_H
+#define STREAMING_TEST_FIXTURE_H 
+#include <klepsydra/streaming/streaming_factory_provider.h>
 
-#ifndef EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
-#define EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
+#include "gtest/gtest.h"
 
-#include <klepsydra/core/container.h>
-#include <klepsydra/core/service.h>
-
-#include <klepsydra/streaming/event_emitter_factory.h>
-
-namespace kpsr {
-namespace streaming {
-
-class EventEmitterPublishSubscribeFactory : virtual public kpsr::Service
-{
-public:
-    EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize, const std::string& name);
-
-    virtual ~EventEmitterPublishSubscribeFactory();
-
+class StreamingFactoryProviderDefault : public testing::TestWithParam<bool> {
 protected:
-    void start() override {}
-
-    void stop() override {}
-
-    kpsr::Container * _container;
-    EventEmitterFactory _eventEmitterFactory;
-    int _poolSize;
+    StreamingFactoryProviderDefault()
+        : sut(GetParam())
+        {}
+    
+    kpsr::streaming::StreamingFactoryProvider sut;
 };
-}
-}
 
-#endif // EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
+#endif

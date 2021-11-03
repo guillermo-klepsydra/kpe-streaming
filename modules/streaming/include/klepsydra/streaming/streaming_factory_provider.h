@@ -22,8 +22,10 @@
 #include <klepsydra/streaming/visibility.h>
 #include <klepsydra/core/container.h>
 #include <klepsydra/streaming/streaming_policy.h>
-#include <klepsydra/streaming/publish_subscribe_factory.h>
-#include <klepsydra/streaming/data_multiplexer_factory.h>
+#include <klepsydra/streaming/publish_subscribe_factory_float32.h>
+#include <klepsydra/streaming/publish_subscribe_factory_char.h>
+#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
+#include <klepsydra/streaming/data_multiplexer_factory_char.h>
 
 namespace kpsr {
 namespace streaming {
@@ -37,8 +39,10 @@ public:
 
     virtual ~StreamingFactoryProvider();
 
-    std::shared_ptr<PublishSubscribeFactory> & getPublishSubcriberFactory();
-    std::shared_ptr<DataMultiplexerFactory> & getDataMultiplexerFactory();
+    std::shared_ptr<PublishSubscribeFactoryFloat32> & getEventLoopFactoryFloat32();
+    std::shared_ptr<PublishSubscribeFactoryChar> & getEventLoopFactoryChar();
+    std::shared_ptr<DataMultiplexerFactoryFloat32> & getDataMultiplexerFactoryFloat32();
+    std::shared_ptr<DataMultiplexerFactoryChar> & getDataMultiplexerFactoryChar();
 
     StreamingPolicy * getStreamingPolicy();
 
@@ -59,8 +63,10 @@ private:
 
     std::vector<std::string> _procIntensiveStreams;
 
-    std::shared_ptr<PublishSubscribeFactory> _publishSubcriberFactory;
-    std::shared_ptr<DataMultiplexerFactory> _dataMultiplexerFactory;
+    std::shared_ptr<PublishSubscribeFactoryFloat32> _eventLoopFactoryFloat32;
+    std::shared_ptr<PublishSubscribeFactoryChar> _eventLoopFactoryChar;
+    std::shared_ptr<DataMultiplexerFactoryFloat32> _dataMultiplexerFactoryFloat32;
+    std::shared_ptr<DataMultiplexerFactoryChar> _dataMultiplexerFactoryChar;
 };
 } // namespace streaming
 } // namespace kpsr

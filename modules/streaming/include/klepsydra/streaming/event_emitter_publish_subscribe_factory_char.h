@@ -16,32 +16,30 @@
 *
 *****************************************************************************/
 
-#ifndef EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
-#define EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
+#ifndef EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_CHAR_H
+#define EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_CHAR_H
 
-#include <klepsydra/core/container.h>
-#include <klepsydra/core/service.h>
-
-#include <klepsydra/streaming/event_emitter_factory.h>
+#include <klepsydra/streaming/event_emitter_publish_subscribe_factory.h>
+#include <klepsydra/streaming/publish_subscribe_factory_char.h>
 
 namespace kpsr {
 namespace streaming {
 
-class EventEmitterPublishSubscribeFactory : virtual public kpsr::Service
+using EventEmitterChar = kpsr::EventEmitterMiddlewareProvider<DataBatchWithId<std::vector<char>>>;
+
+class EventEmitterPublishSubscribeFactoryChar : public PublishSubscribeFactoryChar, EventEmitterPublishSubscribeFactory
 {
 public:
-    EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize, const std::string& name);
+    EventEmitterPublishSubscribeFactoryChar(kpsr::Container * container, int poolSize);
 
-    virtual ~EventEmitterPublishSubscribeFactory();
+    virtual ~EventEmitterPublishSubscribeFactoryChar();
 
-protected:
-    void start() override {}
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> * getPublisherChar(const std::string & stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * getSubscriberChar(const std::string & stepName, const size_t vectorSize = 0) override;
 
-    void stop() override {}
+private:
+    std::shared_ptr<EventEmitterChar> getEventEmitterChar(const std::string & stepName, const size_t vectorSize);
 
-    kpsr::Container * _container;
-    EventEmitterFactory _eventEmitterFactory;
-    int _poolSize;
 };
 }
 }

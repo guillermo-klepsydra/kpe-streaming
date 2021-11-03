@@ -24,8 +24,10 @@ namespace kpsr {
 namespace streaming {
 
     EventLoopPublishSubscribeFactory::EventLoopPublishSubscribeFactory(kpsr::Container * container,
-                                                                       StreamingPolicy * streamingPolicy)
-        : _container(container)
+                                                                       StreamingPolicy * streamingPolicy,
+                                                                       const std::string& name)
+        : kpsr::Service(nullptr, name)
+        , _container(container)
         , _streamingPolicy(streamingPolicy)
         , _poolSize(_streamingPolicy->getStreamingConfiguration().poolSize)
         , _eventLoops(_streamingPolicy->getStreamingConfiguration().numberOfEventLoops)
@@ -59,68 +61,6 @@ namespace streaming {
         return _eventLoops[_streamingPolicy->addStepToEventLoop(eventLoopName)];
     }
 
-    kpsr::Publisher<DataBatchWithId<F32AlignedVector>> * EventLoopPublishSubscribeFactory::getPublisherF32Aligned(
-        const std::string & stepName, const size_t vectorSize) {
-
-        spdlog::debug("EventLoopPublishSubscribeFactory::getPublisher: stepName: {}", stepName);
-        auto eventLoopName = processStepName(stepName);
-        auto eventLoopPtr = getEventLoop(eventLoopName);
-
-        return eventLoopPtr->template getPublisher<DataBatchWithId<F32AlignedVector>>(
-            eventLoopName,
-            _poolSize,
-            [vectorSize] (DataBatchWithId<F32AlignedVector> & data) {
-                data.data->resize(vectorSize);
-            },
-            nullptr);
-    }
-
-    kpsr::Publisher<DataBatchWithId<std::vector<float>>> * EventLoopPublishSubscribeFactory::getPublisherF32(
-        const std::string & stepName, const size_t vectorSize) {
-
-        spdlog::debug("EventLoopPublishSubscribeFactory::getPublisher: stepName: {}", stepName);
-        auto eventLoopName = processStepName(stepName);
-        auto eventLoopPtr = getEventLoop(eventLoopName);
-
-        return eventLoopPtr->template getPublisher<DataBatchWithId<std::vector<float>>>(
-            eventLoopName,
-            _poolSize,
-            [vectorSize] (DataBatchWithId<std::vector<float>> & data) {
-                data.data->resize(vectorSize);
-            },
-            nullptr);
-    }
-
-    kpsr::Publisher<DataBatchWithId<std::vector<F32AlignedVector>>> * EventLoopPublishSubscribeFactory::getPublisherMultiF32Aligned(
-            const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) {
-
-            spdlog::debug("EventLoopPublishSubscribeFactory::getPublisher: stepName: {}", stepName);
-            auto eventLoopName = processStepName(stepName);
-            auto eventLoopPtr = getEventLoop(eventLoopName);
-
-            return eventLoopPtr->template getPublisher<DataBatchWithId<std::vector<F32AlignedVector>>>(
-                eventLoopName,
-                _poolSize,
-                [multiVectorSize, vectorSize] (DataBatchWithId<std::vector<F32AlignedVector>> & data) {
-                    data.data->resize(multiVectorSize);
-                    for (auto& d: *data.data) {
-                        d.resize(vectorSize);
-                    }
-                },
-                nullptr);
-    }
-
-    kpsr::Subscriber<DataBatchWithId<F32AlignedVector>> * EventLoopPublishSubscribeFactory::getSubscriberF32Aligned(const std::string & stepName, const size_t vectorSize) {
-        return getSubscriber<DataBatchWithId<F32AlignedVector>>(stepName);
-    }
-
-    kpsr::Subscriber<DataBatchWithId<std::vector<F32AlignedVector>>> * EventLoopPublishSubscribeFactory::getSubscriberMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) {
-        return getSubscriber<DataBatchWithId<std::vector<F32AlignedVector>>>(stepName);
-    }
-
-    kpsr::Subscriber<DataBatchWithId<std::vector<float>>> * EventLoopPublishSubscribeFactory::getSubscriberF32(const std::string & stepName, const size_t vectorSize) {
-        return getSubscriber<DataBatchWithId<std::vector<float>>>(stepName);
-    }
 
     void EventLoopPublishSubscribeFactory::start() {
         if (spdlog::default_logger()->level() == spdlog::level::debug) {

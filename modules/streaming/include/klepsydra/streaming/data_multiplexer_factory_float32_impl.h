@@ -22,7 +22,7 @@
 #include <klepsydra/core/container.h>
 #include <klepsydra/high_performance/data_multiplexer_middleware_provider.h>
 
-#include <klepsydra/streaming/data_multiplexer_factory.h>
+#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
 #include <klepsydra/streaming/data_multiplexer_factory_provider.h>
 
 namespace kpsr {
@@ -36,10 +36,10 @@ using DataMultiplexer = kpsr::high_performance::DataMultiplexerMiddlewareProvide
 template <class T>
 using DataMultiplexerPtr = std::shared_ptr<DataMultiplexer<T>>;
 
-class DataMultiplexerFactoryImpl : public DataMultiplexerFactory
+class DataMultiplexerFactoryFloat32Impl : public DataMultiplexerFactoryFloat32
 {
 public:
-    DataMultiplexerFactoryImpl(kpsr::Container * container);
+    DataMultiplexerFactoryFloat32Impl(kpsr::Container * container);
 
     virtual kpsr::Publisher<DataBatchWithId<kpsr::streaming::F32AlignedVector>> * getPublisherF32Aligned(const std::string & stepName, const size_t vectorSize) override;
     virtual kpsr::Subscriber<DataBatchWithId<kpsr::streaming::F32AlignedVector>> * getSubscriberF32Aligned(const std::string & stepName, const size_t vectorSize) override;
@@ -50,7 +50,6 @@ public:
     virtual kpsr::Publisher<DataBatchWithId <std::vector<float>>> * getPublisherF32(const std::string & stepName, const size_t vectorSize) override;
     virtual kpsr::Subscriber<DataBatchWithId<std::vector<float>>> * getSubscriberF32(const std::string & stepName, const size_t vectorSize) override;
 
-
 private:
     DataMultiplexerPtr<kpsr::streaming::F32AlignedVector> getDataMultiplexerF32A(const std::string& stepName, const size_t vectorSize);
 
@@ -58,8 +57,8 @@ private:
                                                                  const size_t vectorSize);
 
     DataMultiplexerPtr<std::vector<kpsr::streaming::F32AlignedVector>> getDataMultiplexerMF32A(const std::string& stepName,
-                                                                                                 const size_t vectorSize,
-                                                                                                  const size_t multiVectorSize);
+                                                                                               const size_t vectorSize,
+                                                                                               const size_t multiVectorSize);
     kpsr::Container * _container;
     DataMultiplexerFactoryProvider _dataMultiplexerProviderFactory;
 };

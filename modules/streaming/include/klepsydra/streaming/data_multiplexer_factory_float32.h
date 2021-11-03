@@ -16,34 +16,29 @@
 *
 *****************************************************************************/
 
-#ifndef EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
-#define EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
+#ifndef DATA_MULTIPLEXER_FACTORY_FLOAT32_H
+#define DATA_MULTIPLEXER_FACTORY_FLOAT32_H
 
-#include <klepsydra/core/container.h>
-#include <klepsydra/core/service.h>
-
-#include <klepsydra/streaming/event_emitter_factory.h>
+#include <klepsydra/streaming/stream_internal_types.h>
+#include <klepsydra/streaming/streaming_types.h>
+#include <klepsydra/streaming/publish_subscribe_factory_float32.h>
 
 namespace kpsr {
 namespace streaming {
 
-class EventEmitterPublishSubscribeFactory : virtual public kpsr::Service
+class DataMultiplexerFactoryFloat32 : public PublishSubscribeFactoryFloat32
 {
 public:
-    EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize, const std::string& name);
-
-    virtual ~EventEmitterPublishSubscribeFactory();
+    virtual ~DataMultiplexerFactoryFloat32() {}
 
 protected:
-    void start() override {}
+    virtual void start() override {};
 
-    void stop() override {}
+    virtual void stop() override {};
 
-    kpsr::Container * _container;
-    EventEmitterFactory _eventEmitterFactory;
-    int _poolSize;
+
 };
 }
 }
 
-#endif // EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
+#endif // DATA_MULTIPLEXER_FACTORY_H

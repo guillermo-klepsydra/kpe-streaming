@@ -16,26 +16,35 @@
 *
 *****************************************************************************/
 
-#ifndef DATA_MULTIPLEXER_FACTORY_H
-#define DATA_MULTIPLEXER_FACTORY_H
+#ifndef DATA_MULTIPLEXER_FACTORY_TEST_CHAR_H
+#define DATA_MULTIPLEXER_FACTORY_TEST_CHAR_H
 
-#include <klepsydra/streaming/stream_internal_types.h>
-#include <klepsydra/streaming/streaming_types.h>
-#include <klepsydra/streaming/publish_subscribe_factory.h>
+#include <klepsydra/core/container.h>
+#include <klepsydra/core/event_emitter_middleware_provider.h>
+
+#include <klepsydra/streaming/data_multiplexer_factory_char.h>
+#include <klepsydra/streaming/event_emitter_publish_subscribe_factory_char.h>
 
 namespace kpsr {
 namespace streaming {
 
-class DataMultiplexerFactory : public PublishSubscribeFactory 
+class SyncDataMultiplexerFactoryChar : public DataMultiplexerFactoryChar
 {
 public:
-    virtual void start(){};
-
-    virtual void stop(){};
-
-    virtual ~DataMultiplexerFactory() {}
+    SyncDataMultiplexerFactoryChar(kpsr::Container * container)
+        : kpsr::Service(nullptr, "syncDataMuxFactoryChar")
+        , _testFactory(container, 0)
+        {}
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> * getPublisherChar(const std::string & stepName, const size_t vectorSize) override {
+        return nullptr;
+    }
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * getSubscriberChar(const std::string & stepName, const size_t vectorSize = 0) override {
+        return nullptr;
+    }
+private:
+    EventEmitterPublishSubscribeFactoryFloat32 _testFactory;
 };
 }
 }
 
-#endif // DATA_MULTIPLEXER_FACTORY_H
+#endif // DATA_MULTIPLEXER_FACTORY_TEST_CHAR_H

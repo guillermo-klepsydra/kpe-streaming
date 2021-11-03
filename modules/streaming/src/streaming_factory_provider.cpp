@@ -17,16 +17,19 @@
 *****************************************************************************/
 
 #include <klepsydra/core/configuration_environment.h>
+#include <klepsydra/factory/admin_container_factory.h>
 
 #include <klepsydra/streaming/streaming_factory_provider.h>
 
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory.h>
-#include <klepsydra/streaming/event_emitter_publish_subscribe_factory.h>
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
+#include <klepsydra/streaming/event_emitter_publish_subscribe_factory_float32.h>
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory_char.h>
+#include <klepsydra/streaming/event_emitter_publish_subscribe_factory_char.h>
 
-#include <klepsydra/factory/admin_container_factory.h>
-
-#include <klepsydra/streaming/data_multiplexer_factory_impl.h>
-#include <klepsydra/streaming/sync_data_multiplexer_factory.h>
+#include <klepsydra/streaming/data_multiplexer_factory_float32_impl.h>
+#include <klepsydra/streaming/data_multiplexer_factory_char_impl.h>
+#include <klepsydra/streaming/sync_data_multiplexer_factory_float32.h>
+#include <klepsydra/streaming/sync_data_multiplexer_factory_char.h>
 
 #include <klepsydra/admin/check_license.h>
 
@@ -38,14 +41,17 @@ namespace streaming {
 
 StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN)
     : _container(nullptr)
-    , _publishSubcriberFactory(nullptr)
+    , _eventLoopFactoryFloat32(nullptr)
+    , _eventLoopFactoryChar(nullptr)
 {
     std::vector<std::string> parallisedLayers = {};
     _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(std::thread::hardware_concurrency(), 4, 4, 1, parallisedLayers);
     if (testDNN) {
         setDefaultLogger();
-        _publishSubcriberFactory = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory>(_container, 10);
-        _dataMultiplexerFactory = std::make_shared<kpsr::streaming::SyncDataMultiplexerFactory>(_container);
+        _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(_container, 10);
+        _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(_container, 10);
+        _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::SyncDataMultiplexerFactoryFloat32>(_container);
+        _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::SyncDataMultiplexerFactoryChar>(_container);
     } else {
         createFactories();
     }
@@ -53,7 +59,8 @@ StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN)
 
 StreamingFactoryProvider::StreamingFactoryProvider(const std::string & envFileName, kpsr::Container * container)
     : _container(container)
-    , _publishSubcriberFactory(nullptr)
+    , _eventLoopFactoryFloat32(nullptr)
+    , _eventLoopFactoryChar(nullptr)
 {
     kpsr::ConfigurationEnvironment environment(envFileName);
 
@@ -66,7 +73,8 @@ StreamingFactoryProvider::StreamingFactoryProvider(const std::string & envFileNa
 
 StreamingFactoryProvider::StreamingFactoryProvider(kpsr::Environment * environment, kpsr::Container * container)
     : _container(container)
-    , _publishSubcriberFactory(nullptr)
+    , _eventLoopFactoryFloat32(nullptr)
+    , _eventLoopFactoryChar(nullptr)
 {
     if (!_container) {
         _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(environment);
@@ -93,8 +101,11 @@ void StreamingFactoryProvider::setDefaultLogger(const std::string& logFileName, 
 
 void StreamingFactoryProvider::createFactories() {
     check_license();
-    _publishSubcriberFactory = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory>(_container, _streamingPolicy.get());
-    _dataMultiplexerFactory = std::make_shared<kpsr::streaming::DataMultiplexerFactoryImpl>(_container);
+    _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(_container, _streamingPolicy.get());
+    _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32Impl>(_container);
+
+    _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(_container, _streamingPolicy.get());
+    _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryCharImpl>(_container);
 }
 
 void StreamingFactoryProvider::initForEnvironment(kpsr::Environment * environment)
@@ -144,16 +155,27 @@ void StreamingFactoryProvider::setDefaultStreaming(kpsr::Environment * environme
 
 StreamingFactoryProvider::~StreamingFactoryProvider() {
     // destroy publishSubscriberFactory first:
-    _publishSubcriberFactory.reset();
-    _dataMultiplexerFactory.reset();
+    _eventLoopFactoryFloat32.reset();
+    _dataMultiplexerFactoryFloat32.reset();
+
+    _eventLoopFactoryChar.reset();
+    _dataMultiplexerFactoryChar.reset();
 }
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactory> & StreamingFactoryProvider::getPublishSubcriberFactory() {
-    return _publishSubcriberFactory;
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> & StreamingFactoryProvider::getEventLoopFactoryFloat32() {
+    return _eventLoopFactoryFloat32;
 }
 
-std::shared_ptr<kpsr::streaming::DataMultiplexerFactory> & StreamingFactoryProvider::getDataMultiplexerFactory() {
-    return _dataMultiplexerFactory;
+std::shared_ptr<kpsr::streaming::DataMultiplexerFactoryFloat32> & StreamingFactoryProvider::getDataMultiplexerFactoryFloat32() {
+    return _dataMultiplexerFactoryFloat32;
+}
+
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> & StreamingFactoryProvider::getEventLoopFactoryChar() {
+    return _eventLoopFactoryChar;
+}
+
+std::shared_ptr<kpsr::streaming::DataMultiplexerFactoryChar> & StreamingFactoryProvider::getDataMultiplexerFactoryChar() {
+    return _dataMultiplexerFactoryChar;
 }
 
 StreamingPolicy * StreamingFactoryProvider::getStreamingPolicy() {
@@ -162,11 +184,13 @@ StreamingPolicy * StreamingFactoryProvider::getStreamingPolicy() {
 
 void StreamingFactoryProvider::start() {
     check_license();
-    _publishSubcriberFactory->start();
+    _eventLoopFactoryFloat32->startup();
+    _eventLoopFactoryChar->startup();
 }
 
 void StreamingFactoryProvider::stop() {
-    _publishSubcriberFactory->stop();
+    _eventLoopFactoryFloat32->shutdown();
+    _eventLoopFactoryChar->shutdown();
 }
 
 } // namespace streaming
