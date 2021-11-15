@@ -52,3 +52,6 @@ build/*
 # Linux Temporary files
 *~
 #*
+
+*.user
+config.h

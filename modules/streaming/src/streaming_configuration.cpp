@@ -140,7 +140,7 @@ void StreamingConfiguration::serialize(Archive& archive) {
         cereal::make_nvp(POOL_SIZE, poolSize),
         cereal::make_nvp(NUMBER_OF_CORES, numberOfCores),
         cereal::make_nvp(NUMBER_OF_EVENT_LOOPS, numberOfEventLoops),
-        cereal::make_nvp(NUMBER_OF_PARALLEL_THREADS, nonCriticalThreadPoolSize),
+        cereal::make_nvp(NUMBER_OF_PARALLEL_THREADS, numberOfParallelThreads),
         cereal::make_nvp(EVENT_LOOP_CORE_MAP, eventLoopCoreMap),
         cereal::make_nvp(LAYER_EVENT_LOOP_MAP, stepIDEventLoopMap),
         cereal::make_nvp(PARALLISED_LAYERS, parallelisedSteps));
