@@ -1,6 +1,6 @@
 [submodule "kpsr-build"]
 	path = kpsr-build
-	url = git@bitbucket.org:kpsr-devs/kpsr-build.git
+	url = git@github.com:klepsydra-technologies/kpe-build.git
 [submodule "thirdparties/googletest"]
 	path = thirdparties/googletest
-	url = https://github.com/klepsydra-technologies/googletest
+	url = git@github.com:klepsydra-technologies/googletest.git
