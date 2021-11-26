@@ -19,6 +19,11 @@
 #ifndef DATA_MULTIPLEXER_FACTORY_FLOAT32_H
 #define DATA_MULTIPLEXER_FACTORY_FLOAT32_H
 
+#include <klepsydra/core/container.h>
+#include <klepsydra/high_performance/data_multiplexer_middleware_provider.h>
+
+#include <klepsydra/streaming/data_multiplexer_factory_provider.h>
+
 #include <klepsydra/streaming/stream_internal_types.h>
 #include <klepsydra/streaming/streaming_types.h>
 #include <klepsydra/streaming/publish_subscribe_factory_float32.h>
@@ -29,16 +34,44 @@ namespace streaming {
 class DataMultiplexerFactoryFloat32 : public PublishSubscribeFactoryFloat32
 {
 public:
-    virtual ~DataMultiplexerFactoryFloat32() {}
+    DataMultiplexerFactoryFloat32(kpsr::Container * container);
+    
+    ~DataMultiplexerFactoryFloat32();
+
+    virtual kpsr::Publisher<DataBatchWithId<kpsr::streaming::F32AlignedVector>> * getPublisherF32Aligned(const std::string & stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<kpsr::streaming::F32AlignedVector>> * getSubscriberF32Aligned(const std::string & stepName, const size_t vectorSize) override;
+
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>> * getPublisherMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>> * getSubscriberMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) override;
+
+    virtual kpsr::Publisher<DataBatchWithId <std::vector<float>>> * getPublisherF32(const std::string & stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<float>>> * getSubscriberF32(const std::string & stepName, const size_t vectorSize) override;
 
 protected:
-    virtual void start() override {};
+    virtual void start() override;
 
-    virtual void stop() override {};
+    virtual void stop() override;
 
+private:
+    static const int DATA_MULTIPLEXER_SIZE = 8;
+    template <class T>
+    using DataMultiplexer = kpsr::high_performance::DataMultiplexerMiddlewareProvider<kpsr::streaming::DataBatchWithId<T>, DATA_MULTIPLEXER_SIZE>;
 
+    template <class T>
+    using DataMultiplexerPtr = std::shared_ptr<DataMultiplexer<T>>;
+
+    DataMultiplexerPtr<kpsr::streaming::F32AlignedVector> getDataMultiplexerF32A(const std::string& stepName, const size_t vectorSize);
+
+    DataMultiplexerPtr<std::vector<float>> getDataMultiplexerF32(const std::string& stepName,
+                                                                 const size_t vectorSize);
+
+    DataMultiplexerPtr<std::vector<kpsr::streaming::F32AlignedVector>> getDataMultiplexerMF32A(const std::string& stepName,
+                                                                                               const size_t vectorSize,
+                                                                                               const size_t multiVectorSize);
+    kpsr::Container * _container;
+    DataMultiplexerFactoryProvider _dataMultiplexerProviderFactory;
 };
 }
 }
 
-#endif // DATA_MULTIPLEXER_FACTORY_H
+#endif // DATA_MULTIPLEXER_FACTORY_FLOAT32_H

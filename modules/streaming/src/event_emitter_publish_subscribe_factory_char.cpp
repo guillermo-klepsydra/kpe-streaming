@@ -31,7 +31,7 @@ EventEmitterPublishSubscribeFactoryChar::~EventEmitterPublishSubscribeFactoryCha
 {
 }
 
-std::shared_ptr<EventEmitterChar> EventEmitterPublishSubscribeFactoryChar::getEventEmitterChar(const std::string & stepName, const size_t vectorSize) {
+std::shared_ptr<EventEmitterPublishSubscribeFactoryChar::EventEmitterChar> EventEmitterPublishSubscribeFactoryChar::getEventEmitterChar(const std::string & stepName, const size_t vectorSize) {
     auto emitter = _eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<char>>>(stepName);
     if (emitter) {
         return emitter;
@@ -49,6 +49,24 @@ std::shared_ptr<EventEmitterChar> EventEmitterPublishSubscribeFactoryChar::getEv
     }
 }
 
+std::shared_ptr<EventEmitterPublishSubscribeFactoryChar::EventEmitterUChar> EventEmitterPublishSubscribeFactoryChar::getEventEmitterUChar(const std::string & stepName, const size_t vectorSize) {
+    auto emitter = _eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<unsigned char>>>(stepName);
+    if (emitter) {
+        return emitter;
+    } else {
+        return _eventEmitterFactory.insertEmitter(
+            stepName,
+            std::make_shared<EventEmitterUChar>(
+                _container,
+                stepName,
+                _poolSize,
+                [vectorSize] (DataBatchWithId<std::vector<unsigned char>> & data) {
+                    data.data->resize(vectorSize);
+                },
+                nullptr));
+    }
+}
+
 kpsr::Publisher<DataBatchWithId<std::vector<char>>> * EventEmitterPublishSubscribeFactoryChar::getPublisherChar(const std::string & stepName, const size_t vectorSize) {
     spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getPublisherChar: stepName: {}", stepName);
     return getEventEmitterChar(stepName, vectorSize)->getPublisher();
@@ -57,6 +75,16 @@ kpsr::Publisher<DataBatchWithId<std::vector<char>>> * EventEmitterPublishSubscri
 kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * EventEmitterPublishSubscribeFactoryChar::getSubscriberChar(const std::string & stepName, const size_t vectorSize) {
     spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getSubscriberChar: stepName: {}", stepName);
     return getEventEmitterChar(stepName, vectorSize)->getSubscriber();
+}
+
+kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * EventEmitterPublishSubscribeFactoryChar::getPublisherUChar(const std::string & stepName, const size_t vectorSize) {
+    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getPublisherChar: stepName: {}", stepName);
+    return getEventEmitterUChar(stepName, vectorSize)->getPublisher();
+}
+
+kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * EventEmitterPublishSubscribeFactoryChar::getSubscriberUChar(const std::string & stepName, const size_t vectorSize) {
+    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getSubscriberChar: stepName: {}", stepName);
+    return getEventEmitterUChar(stepName, vectorSize)->getSubscriber();
 }
 
 }

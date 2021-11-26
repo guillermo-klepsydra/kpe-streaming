@@ -35,6 +35,8 @@ public:
     virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> * getPublisherChar(const std::string & stepName, const size_t vectorSize) = 0;
     virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * getSubscriberChar(const std::string & stepName, const size_t vectorSize = 0) = 0;
 
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * getPublisherUChar(const std::string & stepName, const size_t vectorSize) = 0;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * getSubscriberUChar(const std::string & stepName, const size_t vectorSize = 0) = 0;
 protected:
     virtual void execute() override {};
 };

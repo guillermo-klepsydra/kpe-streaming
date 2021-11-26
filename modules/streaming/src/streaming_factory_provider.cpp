@@ -26,11 +26,6 @@
 #include <klepsydra/streaming/event_loop_publish_subscribe_factory_char.h>
 #include <klepsydra/streaming/event_emitter_publish_subscribe_factory_char.h>
 
-#include <klepsydra/streaming/data_multiplexer_factory_float32_impl.h>
-#include <klepsydra/streaming/data_multiplexer_factory_char_impl.h>
-#include <klepsydra/streaming/sync_data_multiplexer_factory_float32.h>
-#include <klepsydra/streaming/sync_data_multiplexer_factory_char.h>
-
 #include <klepsydra/admin/check_license.h>
 
 #include <spdlog/sinks/basic_file_sink.h>
@@ -50,8 +45,8 @@ StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN)
         setDefaultLogger();
         _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(_container, 10);
         _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(_container, 10);
-        _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::SyncDataMultiplexerFactoryFloat32>(_container);
-        _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::SyncDataMultiplexerFactoryChar>(_container);
+        _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(_container, 10);
+        _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(_container, 10);
     } else {
         createFactories();
     }
@@ -102,10 +97,10 @@ void StreamingFactoryProvider::setDefaultLogger(const std::string& logFileName, 
 void StreamingFactoryProvider::createFactories() {
     check_license();
     _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(_container, _streamingPolicy.get());
-    _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32Impl>(_container);
+    _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32>(_container);
 
     _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(_container, _streamingPolicy.get());
-    _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryCharImpl>(_container);
+    _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(_container);
 }
 
 void StreamingFactoryProvider::initForEnvironment(kpsr::Environment * environment)
@@ -166,7 +161,7 @@ std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> & StreamingFact
     return _eventLoopFactoryFloat32;
 }
 
-std::shared_ptr<kpsr::streaming::DataMultiplexerFactoryFloat32> & StreamingFactoryProvider::getDataMultiplexerFactoryFloat32() {
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> & StreamingFactoryProvider::getDataMultiplexerFactoryFloat32() {
     return _dataMultiplexerFactoryFloat32;
 }
 
@@ -174,7 +169,7 @@ std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> & StreamingFactory
     return _eventLoopFactoryChar;
 }
 
-std::shared_ptr<kpsr::streaming::DataMultiplexerFactoryChar> & StreamingFactoryProvider::getDataMultiplexerFactoryChar() {
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> & StreamingFactoryProvider::getDataMultiplexerFactoryChar() {
     return _dataMultiplexerFactoryChar;
 }
 

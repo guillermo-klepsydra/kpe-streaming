@@ -16,7 +16,7 @@
 *
 *****************************************************************************/
 
-#include <klepsydra/streaming/data_multiplexer_factory_float32_impl.h>
+#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
 #include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
 
 #include <numeric>
@@ -29,7 +29,7 @@ TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest) {
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryFloat32Impl dataMultiplexerInstance(nullptr);
+    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr);
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer", 3);
     kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberF32Aligned("dataMultiplexer", 3);
@@ -39,11 +39,11 @@ TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest) {
     kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventloopInstance(nullptr, defaultStreamingPolicy.get());
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
-        dataMultiplexerSubscriber->registerListener("dataMultiplexer_" + i, [i, &eventloopInstance](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){
-                                                                                                    eventloopInstance.getPublisherF32Aligned("eventloop_" + i, 3)->publish(event);                                 
+        dataMultiplexerSubscriber->registerListener("dataMultiplexer_" + std::to_string(i), [i, &eventloopInstance](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){
+                                                                                                    eventloopInstance.getPublisherF32Aligned("eventloop_" + std::to_string(i), 3)->publish(event);                                 
                                                 });
 
-        eventloopInstance.getSubscriberF32Aligned("eventloop_" + i, 3)->registerListener("data_received_ctr_" + i, [i, &data_received_ctr](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){
+        eventloopInstance.getSubscriberF32Aligned("eventloop_" + std::to_string(i), 3)->registerListener("data_received_ctr_" + std::to_string(i), [i, &data_received_ctr](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){
                                                                                                                                            data_received_ctr[i]++; 
                                                                                 });
     }
@@ -64,8 +64,8 @@ TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest) {
     eventloopInstance.shutdown();
     
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
-        dataMultiplexerSubscriber->removeListener("dataMultiplexer_" + i);
-        eventloopInstance.getSubscriberF32Aligned("eventloop_" + i, 3)->removeListener("data_received_ctr_" + i);
+        dataMultiplexerSubscriber->removeListener("dataMultiplexer_" + std::to_string(i));
+        eventloopInstance.getSubscriberF32Aligned("eventloop_" + std::to_string(i), 3)->removeListener("data_received_ctr_" + std::to_string(i));
     }
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {

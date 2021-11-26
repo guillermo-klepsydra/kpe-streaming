@@ -41,8 +41,8 @@ public:
 
     std::shared_ptr<PublishSubscribeFactoryFloat32> & getEventLoopFactoryFloat32();
     std::shared_ptr<PublishSubscribeFactoryChar> & getEventLoopFactoryChar();
-    std::shared_ptr<DataMultiplexerFactoryFloat32> & getDataMultiplexerFactoryFloat32();
-    std::shared_ptr<DataMultiplexerFactoryChar> & getDataMultiplexerFactoryChar();
+    std::shared_ptr<PublishSubscribeFactoryFloat32> & getDataMultiplexerFactoryFloat32();
+    std::shared_ptr<PublishSubscribeFactoryChar> & getDataMultiplexerFactoryChar();
 
     StreamingPolicy * getStreamingPolicy();
 
@@ -65,8 +65,8 @@ private:
 
     std::shared_ptr<PublishSubscribeFactoryFloat32> _eventLoopFactoryFloat32;
     std::shared_ptr<PublishSubscribeFactoryChar> _eventLoopFactoryChar;
-    std::shared_ptr<DataMultiplexerFactoryFloat32> _dataMultiplexerFactoryFloat32;
-    std::shared_ptr<DataMultiplexerFactoryChar> _dataMultiplexerFactoryChar;
+    std::shared_ptr<PublishSubscribeFactoryFloat32> _dataMultiplexerFactoryFloat32;
+    std::shared_ptr<PublishSubscribeFactoryChar> _dataMultiplexerFactoryChar;
 };
 } // namespace streaming
 } // namespace kpsr

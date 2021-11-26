@@ -55,6 +55,9 @@ TEST_P(StreamingFactoryProviderDefault, GetNewPubSubTest) {
     ASSERT_NE(streamingFactoryChar->getPublisherChar("image", 10), nullptr);
     ASSERT_NE(streamingFactoryChar->getSubscriberChar("image", 10), nullptr);
 
+    ASSERT_NE(streamingFactoryChar->getPublisherUChar("image_unsigned", 10), nullptr);
+    ASSERT_NE(streamingFactoryChar->getSubscriberUChar("image_unsigned", 10), nullptr);
+
     ASSERT_NO_THROW(sut.start());
     ASSERT_NO_THROW(sut.stop());
 }
@@ -83,6 +86,12 @@ TEST_P(StreamingFactoryProviderDefault, GetExistingPubSubTest) {
 
     auto CharSub = streamingFactoryChar->getSubscriberChar("test", 10);
     ASSERT_EQ(streamingFactoryChar->getSubscriberChar("test", 1), CharSub);
+
+    auto UCharPub = streamingFactoryChar->getPublisherUChar("test_unsigned", 10);
+    ASSERT_EQ(streamingFactoryChar->getPublisherUChar("test_unsigned", 1), UCharPub);
+
+    auto UCharSub = streamingFactoryChar->getSubscriberUChar("test_unsigned", 10);
+    ASSERT_EQ(streamingFactoryChar->getSubscriberUChar("test_unsigned", 1), UCharSub);
 
     ASSERT_NO_THROW(sut.start());
     ASSERT_NO_THROW(sut.stop());

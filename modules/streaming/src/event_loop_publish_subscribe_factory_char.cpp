@@ -52,5 +52,25 @@ namespace streaming {
     kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * EventLoopPublishSubscribeFactoryChar::getSubscriberChar(const std::string & stepName, const size_t vectorSize) {
         return getSubscriber<DataBatchWithId<std::vector<char>>>(stepName);
     }
+
+    kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * EventLoopPublishSubscribeFactoryChar::getPublisherUChar(
+        const std::string & stepName, const size_t vectorSize) {
+
+        spdlog::debug("EventLoopPublishSubscribeFactory::getPublisher: stepName: {}", stepName);
+        auto eventLoopName = processStepName(stepName);
+        auto eventLoopPtr = getEventLoop(eventLoopName);
+
+        return eventLoopPtr->template getPublisher<DataBatchWithId<std::vector<unsigned char>>>(
+            eventLoopName,
+            _poolSize,
+            [vectorSize] (DataBatchWithId<std::vector<unsigned char>> & data) {
+                data.data->resize(vectorSize);
+            },
+            nullptr);
+    }
+
+    kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * EventLoopPublishSubscribeFactoryChar::getSubscriberUChar(const std::string & stepName, const size_t vectorSize) {
+        return getSubscriber<DataBatchWithId<std::vector<unsigned char>>>(stepName);
+    }
 }
 }

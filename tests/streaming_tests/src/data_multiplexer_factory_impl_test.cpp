@@ -16,26 +16,26 @@
 *
 *****************************************************************************/
 
-#include <klepsydra/streaming/data_multiplexer_factory_float32_impl.h>
+#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
 
 #include <numeric>
 
 #include "gtest/gtest.h"
 
-TEST(DataMultiplexerFactoryFloat32ImplTest, SimpleTest) {
+TEST(DataMultiplexerFactoryFloat32Test, SimpleTest) {
     
     const int num_listeners = 2;
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryFloat32Impl dataMultiplexerInstance(nullptr);
+    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr);
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer", 3);
     kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberF32Aligned("dataMultiplexer", 3);
     
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
-        dataMultiplexerSubscriber->registerListener("data_received_ctr_" + i, [i, &data_received_ctr](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){
-                                                                                                      data_received_ctr[i]++;                                   
+        dataMultiplexerSubscriber->registerListener("data_received_ctr_" + std::to_string(i), [i, &data_received_ctr](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){
+                                                                                               data_received_ctr[i]++;                                   
                                                 });
     }
     
@@ -51,7 +51,7 @@ TEST(DataMultiplexerFactoryFloat32ImplTest, SimpleTest) {
 
     dataMultipexerPublisherThread.join();
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
-        dataMultiplexerSubscriber->removeListener("data_received_ctr_" + i);
+        dataMultiplexerSubscriber->removeListener("data_received_ctr_" + std::to_string(i));
     }
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
