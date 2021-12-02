@@ -27,8 +27,10 @@ namespace kpsr {
 namespace streaming {
 
 using F32AlignedVector = std::vector<float, AlignedAllocator<float, 16>>;
-using I16AlignedVector = std::vector<uint16_t, AlignedAllocator<uint16_t, 16>>;
+using I32AlignedVector = std::vector<int32_t, AlignedAllocator<int32_t, 16>>;
+using UI16AlignedVector = std::vector<uint16_t, AlignedAllocator<uint16_t, 16>>;
 using I8AlignedVector = std::vector<int8_t, AlignedAllocator<int8_t, 16>>;
+using UI8AlignedVector = std::vector<uint8_t, AlignedAllocator<uint8_t, 16>>;
 
 }
 }
