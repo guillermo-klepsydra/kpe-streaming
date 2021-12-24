@@ -32,14 +32,14 @@ TEST_P(StreamingFactoryProviderDefault, DefaultGetFactory) {
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
     ASSERT_NE(streamingFactoryFloat32.get(), nullptr);
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> streamingFactoryChar = sut.getEventLoopFactoryChar();
-    ASSERT_NE(streamingFactoryChar.get(), nullptr);
+    ASSERT_EQ(streamingFactoryChar.get(), nullptr);
 }
 
 TEST_P(StreamingFactoryProviderDefault, StartStopTest) {
     ASSERT_NO_THROW(sut.start());
     ASSERT_NO_THROW(sut.stop());
 }
-            
+
 TEST_P(StreamingFactoryProviderDefault, GetNewPubSubTest) {
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
     ASSERT_NE(streamingFactoryFloat32.get(), nullptr);
@@ -51,12 +51,7 @@ TEST_P(StreamingFactoryProviderDefault, GetNewPubSubTest) {
     ASSERT_NE(streamingFactoryFloat32->getSubscriberF32("relu", 10), nullptr);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> streamingFactoryChar = sut.getEventLoopFactoryChar();
-    ASSERT_NE(streamingFactoryChar.get(), nullptr);
-    ASSERT_NE(streamingFactoryChar->getPublisherChar("image", 10), nullptr);
-    ASSERT_NE(streamingFactoryChar->getSubscriberChar("image", 10), nullptr);
-
-    ASSERT_NE(streamingFactoryChar->getPublisherUChar("image_unsigned", 10), nullptr);
-    ASSERT_NE(streamingFactoryChar->getSubscriberUChar("image_unsigned", 10), nullptr);
+    ASSERT_EQ(streamingFactoryChar.get(), nullptr);
 
     ASSERT_NO_THROW(sut.start());
     ASSERT_NO_THROW(sut.stop());
@@ -80,27 +75,17 @@ TEST_P(StreamingFactoryProviderDefault, GetExistingPubSubTest) {
     ASSERT_EQ(streamingFactoryFloat32->getSubscriberF32("relu", 1), F32Sub);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> streamingFactoryChar = sut.getEventLoopFactoryChar();
-    ASSERT_NE(streamingFactoryChar.get(), nullptr);
-    auto CharPub = streamingFactoryChar->getPublisherChar("test", 10);
-    ASSERT_EQ(streamingFactoryChar->getPublisherChar("test", 1), CharPub);
-
-    auto CharSub = streamingFactoryChar->getSubscriberChar("test", 10);
-    ASSERT_EQ(streamingFactoryChar->getSubscriberChar("test", 1), CharSub);
-
-    auto UCharPub = streamingFactoryChar->getPublisherUChar("test_unsigned", 10);
-    ASSERT_EQ(streamingFactoryChar->getPublisherUChar("test_unsigned", 1), UCharPub);
-
-    auto UCharSub = streamingFactoryChar->getSubscriberUChar("test_unsigned", 10);
-    ASSERT_EQ(streamingFactoryChar->getSubscriberUChar("test_unsigned", 1), UCharSub);
+    ASSERT_EQ(streamingFactoryChar.get(), nullptr);
 
     ASSERT_NO_THROW(sut.start());
     ASSERT_NO_THROW(sut.stop());
 }
 
-TEST(StreamingFactoryProvider, EnvironmentForProduction) {
+TEST(StreamingFactoryProvider, EnvironmentForProductionFloat32) {
     kpsr::mem::MemEnv environment;
     environment.setPropertyString("log_filename", "./logfile.log");
     environment.setPropertyInt("log_level", 1);
+    environment.setPropertyBool("use_char_data", false);
     environment.setPropertyBool("stat_socket_container_enable", true);
     environment.setPropertyInt("stat_admin_port", 9595);
     environment.setPropertyInt("stat_system_port", 9696);
@@ -120,6 +105,40 @@ TEST(StreamingFactoryProvider, EnvironmentForProduction) {
     streamingFactoryFloat32->getSubscriberF32Aligned("conv", 10);
     streamingFactoryFloat32->getSubscriberMultiF32Aligned("reluAlign", 10, 2);
     streamingFactoryFloat32->getSubscriberF32("relu", 10);
+
+    ASSERT_NO_THROW(sut.start());
+    ASSERT_NO_THROW(sut.stop());
+}
+
+TEST(StreamingFactoryProvider, EnvironmentForProductionChar) {
+    kpsr::mem::MemEnv environment;
+    environment.setPropertyString("log_filename", "./logfile.log");
+    environment.setPropertyInt("log_level", 1);
+    environment.setPropertyBool("use_char_data", true);
+    environment.setPropertyBool("stat_socket_container_enable", true);
+    environment.setPropertyInt("stat_admin_port", 9595);
+    environment.setPropertyInt("stat_system_port", 9696);
+    environment.setPropertyInt("pool_size", 32);
+    environment.setPropertyBool("use_default_streaming_factory", true);
+    environment.setPropertyInt("number_of_cores", 2);
+    environment.setPropertyString("processor_intensive_layers", "max");
+    environment.setPropertyString("streaming_conf_file", "");
+
+    kpsr::streaming::StreamingFactoryProvider sut(&environment);
+
+    std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> streamingFactoryChar = sut.getEventLoopFactoryChar();
+    ASSERT_NE(streamingFactoryChar.get(), nullptr);
+    auto CharPub = streamingFactoryChar->getPublisherChar("test", 10);
+    ASSERT_EQ(streamingFactoryChar->getPublisherChar("test", 1), CharPub);
+
+    auto CharSub = streamingFactoryChar->getSubscriberChar("test", 10);
+    ASSERT_EQ(streamingFactoryChar->getSubscriberChar("test", 1), CharSub);
+
+    auto UCharPub = streamingFactoryChar->getPublisherUChar("test_unsigned", 10);
+    ASSERT_EQ(streamingFactoryChar->getPublisherUChar("test_unsigned", 1), UCharPub);
+
+    auto UCharSub = streamingFactoryChar->getSubscriberUChar("test_unsigned", 10);
+    ASSERT_EQ(streamingFactoryChar->getSubscriberUChar("test_unsigned", 1), UCharSub);
 
     ASSERT_NO_THROW(sut.start());
     ASSERT_NO_THROW(sut.stop());
@@ -158,15 +177,15 @@ TEST(StreamingFactoryProvider, InsufficientThreadsError) {
     {
         std::vector<std::shared_ptr<kpsr::streaming::StreamingFactoryProvider>> sut;
         for (size_t i = 0; i < std::thread::hardware_concurrency() * 20; i++) {
-            sut.emplace_back(std::make_shared<kpsr::streaming::StreamingFactoryProvider>(false)); // create new provider.
+            sut.emplace_back(std::make_shared<kpsr::streaming::StreamingFactoryProvider>(false, false)); // create new provider.
         }
 
         auto start = [&](){
-                         for (auto& provider: sut) {
-                             auto streamingFactoryFloat32 = provider->getEventLoopFactoryFloat32();
-                             provider->start();
-                         }
-                     };
+            for (auto& provider: sut) {
+                auto streamingFactoryFloat32 = provider->getEventLoopFactoryFloat32();
+                provider->start();
+            }
+        };
         if (!sut.empty()) {
             EXPECT_THROW(start(), std::runtime_error);
         }
@@ -180,7 +199,7 @@ TEST(StreamingFactoryProvider, InsufficientThreadsError) {
 TEST(StreamingFactoryProvider, MultiStartStopTest) {
     {
         {
-            kpsr::streaming::StreamingFactoryProvider sut(false);
+            kpsr::streaming::StreamingFactoryProvider sut(false, false);
 
             std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
             EXPECT_NO_THROW(sut.start());
@@ -188,17 +207,17 @@ TEST(StreamingFactoryProvider, MultiStartStopTest) {
         }
 
         {
-            kpsr::streaming::StreamingFactoryProvider sut(false);
+            kpsr::streaming::StreamingFactoryProvider sut(false, false);
 
             std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
             EXPECT_NO_THROW(sut.start());
             sut.stop();
         }
 
-            kpsr::streaming::StreamingFactoryProvider sut(false);
+        kpsr::streaming::StreamingFactoryProvider sut(false, false);
 
-            std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
-            EXPECT_NO_THROW(sut.start());
-            sut.stop();
+        std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+        EXPECT_NO_THROW(sut.start());
+        sut.stop();
     }
 }
