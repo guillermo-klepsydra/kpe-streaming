@@ -157,22 +157,7 @@ void StreamingFactoryProvider::setDefaultStreaming(kpsr::Environment * environme
                                                                 numberOfParallelThreads, parallisedLayers);
 }        
 
-StreamingFactoryProvider::~StreamingFactoryProvider() {
-    // destroy publishSubscriberFactory first:
-    spdlog::debug("{}", __PRETTY_FUNCTION__);
-
-    if (_eventLoopFactoryFloat32) {
-        spdlog::debug("{}. Deleting float32 factories", __PRETTY_FUNCTION__);
-        _eventLoopFactoryFloat32.reset();
-        _dataMultiplexerFactoryFloat32.reset();
-    }
-
-    if (_eventLoopFactoryChar) {
-        spdlog::debug("{}. Deleting char factories", __PRETTY_FUNCTION__);
-        _eventLoopFactoryChar.reset();
-        _dataMultiplexerFactoryChar.reset();
-    }
-}
+StreamingFactoryProvider::~StreamingFactoryProvider() {}
 
 std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> & StreamingFactoryProvider::getEventLoopFactoryFloat32() {
     return _eventLoopFactoryFloat32;
