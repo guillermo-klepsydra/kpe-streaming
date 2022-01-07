@@ -36,7 +36,8 @@ TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest) {
     
     std::vector<std::string> parallisedStreams = {};
     std::unique_ptr<kpsr::streaming::DefaultStreamingPolicy> defaultStreamingPolicy = std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(std::thread::hardware_concurrency(), 2, 1, 1, parallisedStreams);
-    kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventloopInstance(nullptr, defaultStreamingPolicy.get());
+    auto eventLoopPublishSubscribeFactory = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr, defaultStreamingPolicy.get());
+    kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventloopInstance(eventLoopPublishSubscribeFactory);
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         dataMultiplexerSubscriber->registerListener("dataMultiplexer_" + std::to_string(i), [i, &eventloopInstance](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){

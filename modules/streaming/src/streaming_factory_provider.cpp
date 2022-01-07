@@ -21,6 +21,7 @@
 
 #include <klepsydra/streaming/streaming_factory_provider.h>
 
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory.h>
 #include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
 #include <klepsydra/streaming/event_emitter_publish_subscribe_factory_float32.h>
 #include <klepsydra/streaming/event_loop_publish_subscribe_factory_char.h>
@@ -100,12 +101,13 @@ void StreamingFactoryProvider::setDefaultLogger(const std::string& logFileName, 
 
 void StreamingFactoryProvider::createFactories(bool useChar) {
     check_license();
+    auto eventLoopPublishSubscribeFactory = std::make_shared<EventLoopPublishSubscribeFactory>(_container, _streamingPolicy.get());
     if (useChar) {
-        _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(_container, _streamingPolicy.get());
+        _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(eventLoopPublishSubscribeFactory);
         _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(_container);
     }
     else {
-        _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(_container, _streamingPolicy.get());
+        _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(eventLoopPublishSubscribeFactory);
         _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32>(_container);
     }
 }

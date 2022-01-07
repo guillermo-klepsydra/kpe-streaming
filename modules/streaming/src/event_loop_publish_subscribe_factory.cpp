@@ -24,10 +24,8 @@ namespace kpsr {
 namespace streaming {
 
     EventLoopPublishSubscribeFactory::EventLoopPublishSubscribeFactory(kpsr::Container * container,
-                                                                       StreamingPolicy * streamingPolicy,
-                                                                       const std::string& name)
-        : kpsr::Service(nullptr, name)
-        , _container(container)
+                                                                       StreamingPolicy * streamingPolicy)
+        : _container(container)
         , _streamingPolicy(streamingPolicy)
         , _poolSize(_streamingPolicy->getStreamingConfiguration().poolSize)
         , _eventLoops(_streamingPolicy->getStreamingConfiguration().numberOfEventLoops)
@@ -87,6 +85,10 @@ namespace streaming {
 
     const StreamingPolicy * EventLoopPublishSubscribeFactory::getStreamingPolicy() {
         return _streamingPolicy;
+    }
+
+    int EventLoopPublishSubscribeFactory::getPoolSize() const {
+        return _poolSize;
     }
 }
 }

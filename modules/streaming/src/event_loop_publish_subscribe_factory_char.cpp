@@ -22,10 +22,9 @@
 namespace kpsr {
 namespace streaming {
 
-    EventLoopPublishSubscribeFactoryChar::EventLoopPublishSubscribeFactoryChar(kpsr::Container * container,
-                                                                       StreamingPolicy * streamingPolicy)
+    EventLoopPublishSubscribeFactoryChar::EventLoopPublishSubscribeFactoryChar(std::shared_ptr<EventLoopPublishSubscribeFactory> & eventLoopPublishSubscribeFactory)
         : kpsr::Service(nullptr, "EventLoopPubSubFactoryService")
-        , EventLoopPublishSubscribeFactory(container, streamingPolicy, "EventLoopPubSubFactoryService")
+        , _eventLoopPublishSubscribeFactory(eventLoopPublishSubscribeFactory)
     {
     }
 
@@ -37,12 +36,12 @@ namespace streaming {
         const std::string & stepName, const size_t vectorSize) {
 
         spdlog::debug("EventLoopPublishSubscribeFactory::getPublisher: stepName: {}", stepName);
-        auto eventLoopName = processStepName(stepName);
-        auto eventLoopPtr = getEventLoop(eventLoopName);
+        auto eventLoopName = _eventLoopPublishSubscribeFactory->processStepName(stepName);
+        auto eventLoopPtr = _eventLoopPublishSubscribeFactory->getEventLoop(eventLoopName);
 
         return eventLoopPtr->template getPublisher<DataBatchWithId<std::vector<char>>>(
             eventLoopName,
-            _poolSize,
+            _eventLoopPublishSubscribeFactory->getPoolSize(),
             [vectorSize] (DataBatchWithId<std::vector<char>> & data) {
                 data.data->resize(vectorSize);
             },
@@ -50,19 +49,19 @@ namespace streaming {
     }
 
     kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * EventLoopPublishSubscribeFactoryChar::getSubscriberChar(const std::string & stepName, const size_t vectorSize) {
-        return getSubscriber<DataBatchWithId<std::vector<char>>>(stepName);
+        return _eventLoopPublishSubscribeFactory->getSubscriber<DataBatchWithId<std::vector<char>>>(stepName);
     }
 
     kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * EventLoopPublishSubscribeFactoryChar::getPublisherUChar(
         const std::string & stepName, const size_t vectorSize) {
 
         spdlog::debug("EventLoopPublishSubscribeFactory::getPublisher: stepName: {}", stepName);
-        auto eventLoopName = processStepName(stepName);
-        auto eventLoopPtr = getEventLoop(eventLoopName);
+        auto eventLoopName = _eventLoopPublishSubscribeFactory->processStepName(stepName);
+        auto eventLoopPtr = _eventLoopPublishSubscribeFactory->getEventLoop(eventLoopName);
 
         return eventLoopPtr->template getPublisher<DataBatchWithId<std::vector<unsigned char>>>(
             eventLoopName,
-            _poolSize,
+            _eventLoopPublishSubscribeFactory->getPoolSize(),
             [vectorSize] (DataBatchWithId<std::vector<unsigned char>> & data) {
                 data.data->resize(vectorSize);
             },
@@ -70,7 +69,15 @@ namespace streaming {
     }
 
     kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * EventLoopPublishSubscribeFactoryChar::getSubscriberUChar(const std::string & stepName, const size_t vectorSize) {
-        return getSubscriber<DataBatchWithId<std::vector<unsigned char>>>(stepName);
+        return _eventLoopPublishSubscribeFactory->getSubscriber<DataBatchWithId<std::vector<unsigned char>>>(stepName);
+    }
+
+    void EventLoopPublishSubscribeFactoryChar::start() {
+        _eventLoopPublishSubscribeFactory->start();
+    }
+    
+    void EventLoopPublishSubscribeFactoryChar::stop() {
+        _eventLoopPublishSubscribeFactory->stop(); 
     }
 }
 }

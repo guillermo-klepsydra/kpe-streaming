@@ -30,12 +30,11 @@ const int EVENT_LOOP_SIZE = 32;
 using FactoryEventLoopType = kpsr::high_performance::EventLoopMiddlewareProvider<EVENT_LOOP_SIZE>;
 using EventLoopPtr = std::shared_ptr<FactoryEventLoopType>;
 
-class EventLoopPublishSubscribeFactory : virtual public kpsr::Service
+class EventLoopPublishSubscribeFactory
 {
 public:
     EventLoopPublishSubscribeFactory(kpsr::Container * container,
-                                     StreamingPolicy * streamingPolicy,
-                                     const std::string& name);
+                                     StreamingPolicy * streamingPolicy);
 
     virtual ~EventLoopPublishSubscribeFactory();
 
@@ -43,9 +42,8 @@ public:
 
     const StreamingPolicy * getStreamingPolicy();
 
-protected:
-    void start() override;
-    void stop() override;
+    void start();
+    void stop();
 
     template <class T>
     kpsr::Subscriber<T> * getSubscriber(const std::string& stepName) {
@@ -59,6 +57,9 @@ protected:
 
     EventLoopPtr getEventLoop(const std::string & eventLoopName);
 
+    int getPoolSize() const;
+
+private:
     kpsr::Container * _container;
     StreamingPolicy * _streamingPolicy;
     int _poolSize;

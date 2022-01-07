@@ -28,16 +28,10 @@
 namespace kpsr {
 namespace streaming {
 
-const int CHAR_EVENT_LOOP_SIZE = 32;
-
-using FactoryEventLoopType = kpsr::high_performance::EventLoopMiddlewareProvider<CHAR_EVENT_LOOP_SIZE>;
-using EventLoopPtr = std::shared_ptr<FactoryEventLoopType>;
-
-class EventLoopPublishSubscribeFactoryChar : public PublishSubscribeFactoryChar, EventLoopPublishSubscribeFactory
+class EventLoopPublishSubscribeFactoryChar : public PublishSubscribeFactoryChar
 {
 public:
-    EventLoopPublishSubscribeFactoryChar(kpsr::Container * container,
-                                         StreamingPolicy * streamingPolicy);
+    EventLoopPublishSubscribeFactoryChar(std::shared_ptr<EventLoopPublishSubscribeFactory> & eventLoopPublishSubscribeFactory);
 
     virtual ~EventLoopPublishSubscribeFactoryChar();
 
@@ -46,6 +40,12 @@ public:
 
     virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * getPublisherUChar(const std::string & stepName, const size_t vectorSize) override;
     virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * getSubscriberUChar(const std::string & stepName, const size_t vectorSize = 0) override;
+    
+    void start();
+    void stop();
+
+private:
+    std::shared_ptr<EventLoopPublishSubscribeFactory> _eventLoopPublishSubscribeFactory;
 };
 }
 }
