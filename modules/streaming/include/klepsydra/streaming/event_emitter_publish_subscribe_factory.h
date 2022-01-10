@@ -20,25 +20,27 @@
 #define EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H
 
 #include <klepsydra/core/container.h>
-#include <klepsydra/core/service.h>
 
 #include <klepsydra/streaming/event_emitter_factory.h>
 
 namespace kpsr {
 namespace streaming {
 
-class EventEmitterPublishSubscribeFactory : virtual public kpsr::Service
+class EventEmitterPublishSubscribeFactory
 {
 public:
-    EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize, const std::string& name);
+    EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize);
 
     virtual ~EventEmitterPublishSubscribeFactory();
 
+    kpsr::Container* getContainer();
+    EventEmitterFactory& getEventEmitterFactory();
+    int& getPoolSize();
+
+    void start() {}
+    void stop() {}
+
 protected:
-    void start() override {}
-
-    void stop() override {}
-
     kpsr::Container * _container;
     EventEmitterFactory _eventEmitterFactory;
     int _poolSize;

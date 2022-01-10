@@ -29,10 +29,11 @@ using EventEmitterF32A = kpsr::EventEmitterMiddlewareProvider<DataBatchWithId<F3
 using EventEmitterMF32A = kpsr::EventEmitterMiddlewareProvider<DataBatchWithId<std::vector<F32AlignedVector>>>;
 using EventEmitterF32 = kpsr::EventEmitterMiddlewareProvider<DataBatchWithId<std::vector<float>>>;
 
-class EventEmitterPublishSubscribeFactoryFloat32 : public PublishSubscribeFactoryFloat32, public EventEmitterPublishSubscribeFactory
+class EventEmitterPublishSubscribeFactoryFloat32 : public PublishSubscribeFactoryFloat32
 {
 public:
-    EventEmitterPublishSubscribeFactoryFloat32(kpsr::Container * container, int poolSize);
+    EventEmitterPublishSubscribeFactoryFloat32(std::shared_ptr<EventEmitterPublishSubscribeFactory> & eventEmitterPublishSubscribeFactory);
+
 
     virtual ~EventEmitterPublishSubscribeFactoryFloat32();
 
@@ -45,10 +46,15 @@ public:
     virtual kpsr::Publisher<DataBatchWithId <std::vector<float>>> * getPublisherF32(const std::string & stepName, const size_t vectorSize) override;
     virtual kpsr::Subscriber<DataBatchWithId<std::vector<float>>> * getSubscriberF32(const std::string & stepName, const size_t vectorSize) override;
 
+    void start();
+    void stop();
+
 private:
     std::shared_ptr<EventEmitterF32A> getEventEmitterF32A(const std::string & stepName, const size_t vectorSize);
     std::shared_ptr<EventEmitterMF32A> getEventEmitterMF32A(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize);
     std::shared_ptr<EventEmitterF32> getEventEmitterF32(const std::string & stepName, const size_t vectorSize);
+
+    std::shared_ptr<EventEmitterPublishSubscribeFactory> _eventEmitterPublishSubscribeFactory;
 
 };
 }

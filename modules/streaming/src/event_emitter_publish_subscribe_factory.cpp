@@ -21,9 +21,8 @@
 namespace kpsr {
 namespace streaming {
 
-EventEmitterPublishSubscribeFactory::EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize, const std::string& name)
-    : kpsr::Service(nullptr, name)
-    , _container(container)
+EventEmitterPublishSubscribeFactory::EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize)
+    : _container(container)
     , _eventEmitterFactory()
     , _poolSize(poolSize)
 {
@@ -32,6 +31,21 @@ EventEmitterPublishSubscribeFactory::EventEmitterPublishSubscribeFactory(kpsr::C
 EventEmitterPublishSubscribeFactory::~EventEmitterPublishSubscribeFactory()
 {
     _container = nullptr;
+}
+
+kpsr::Container* EventEmitterPublishSubscribeFactory::getContainer()
+{
+    return _container;
+}
+
+EventEmitterFactory& EventEmitterPublishSubscribeFactory::getEventEmitterFactory()
+{
+    return _eventEmitterFactory;
+}
+
+int& EventEmitterPublishSubscribeFactory::getPoolSize()
+{
+    return _poolSize;
 }
 
 }

@@ -21,9 +21,10 @@
 namespace kpsr {
 namespace streaming {
 
-EventEmitterPublishSubscribeFactoryFloat32::EventEmitterPublishSubscribeFactoryFloat32(kpsr::Container * container, int poolSize)
+EventEmitterPublishSubscribeFactoryFloat32::EventEmitterPublishSubscribeFactoryFloat32(
+    std::shared_ptr<EventEmitterPublishSubscribeFactory> & eventEmitterPublishSubscribeFactory)
     : kpsr::Service(nullptr, "EmitterPubSubFactoryService")
-    , EventEmitterPublishSubscribeFactory(container, poolSize, "EmitterPubSubFactoryService")
+    , _eventEmitterPublishSubscribeFactory(eventEmitterPublishSubscribeFactory)
 {
 }
 
@@ -32,16 +33,17 @@ EventEmitterPublishSubscribeFactoryFloat32::~EventEmitterPublishSubscribeFactory
 }
 
 std::shared_ptr<EventEmitterF32A> EventEmitterPublishSubscribeFactoryFloat32::getEventEmitterF32A(const std::string & stepName, const size_t vectorSize) {
-    auto emitter = _eventEmitterFactory.getEventEmitter<DataBatchWithId<F32AlignedVector>>(stepName);
+    auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
+    auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<F32AlignedVector>>(stepName);
     if (emitter) {
         return emitter;
     } else {
-        return _eventEmitterFactory.insertEmitter(
+        return eventEmitterFactory.insertEmitter(
             stepName,
             std::make_shared<EventEmitterF32A>(
-                _container,
+                _eventEmitterPublishSubscribeFactory->getContainer(),
                 stepName,
-                _poolSize,
+                _eventEmitterPublishSubscribeFactory->getPoolSize(),
                 [vectorSize] (DataBatchWithId<F32AlignedVector> & data) {
                     data.data->resize(vectorSize);
                 },
@@ -50,16 +52,17 @@ std::shared_ptr<EventEmitterF32A> EventEmitterPublishSubscribeFactoryFloat32::ge
 }
 
 std::shared_ptr<EventEmitterMF32A> EventEmitterPublishSubscribeFactoryFloat32::getEventEmitterMF32A(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) {
-    auto emitter = _eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<F32AlignedVector>>>(stepName);
+    auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
+    auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<F32AlignedVector>>>(stepName);
     if (emitter) {
         return emitter;
     } else {
-        return _eventEmitterFactory.insertEmitter(
+        return eventEmitterFactory.insertEmitter(
             stepName,
             std::make_shared<EventEmitterMF32A>(
-                _container,
+                _eventEmitterPublishSubscribeFactory->getContainer(),
                 stepName,
-                _poolSize,
+                _eventEmitterPublishSubscribeFactory->getPoolSize(),
                 [multiVectorSize, vectorSize] (DataBatchWithId<std::vector<F32AlignedVector>> & data) {
                     data.data->resize(multiVectorSize);
                     for (auto& d : *data.data) {
@@ -71,16 +74,17 @@ std::shared_ptr<EventEmitterMF32A> EventEmitterPublishSubscribeFactoryFloat32::g
 }
 
 std::shared_ptr<EventEmitterF32> EventEmitterPublishSubscribeFactoryFloat32::getEventEmitterF32(const std::string & stepName, const size_t vectorSize) {
-    auto emitter = _eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<float>>>(stepName);
+    auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
+    auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<float>>>(stepName);
     if (emitter) {
         return emitter;
     } else {
-        return _eventEmitterFactory.insertEmitter(
+        return eventEmitterFactory.insertEmitter(
             stepName,
             std::make_shared<EventEmitterF32>(
-                _container,
+                _eventEmitterPublishSubscribeFactory->getContainer(),
                 stepName,
-                _poolSize,
+                _eventEmitterPublishSubscribeFactory->getPoolSize(),
                 [vectorSize] (DataBatchWithId<std::vector<float>> & data) {
                     data.data->resize(vectorSize);
                 },
@@ -117,6 +121,14 @@ kpsr::Publisher<DataBatchWithId <std::vector<float>>> * EventEmitterPublishSubsc
 kpsr::Subscriber<DataBatchWithId<std::vector<float>>> * EventEmitterPublishSubscribeFactoryFloat32::getSubscriberF32(const std::string & stepName, const size_t vectorSize) {
     spdlog::debug("EventEmitterPublishSubscribeFactoryFloat32::getSubscriberF32: stepName: {}", stepName);
     return getEventEmitterF32(stepName, vectorSize)->getSubscriber();
+}
+
+void EventEmitterPublishSubscribeFactoryFloat32::start() {
+    _eventEmitterPublishSubscribeFactory->start();
+}
+
+void EventEmitterPublishSubscribeFactoryFloat32::stop() {
+    _eventEmitterPublishSubscribeFactory->stop();
 }
 
 }

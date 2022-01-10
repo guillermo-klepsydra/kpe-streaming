@@ -43,14 +43,15 @@ StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN, bool useChar)
     std::vector<std::string> parallisedLayers = {};
     _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(std::thread::hardware_concurrency(), 4, 4, 1, parallisedLayers);
     if (testDNN) {
+        auto eventEmitterPublishSubscribeFactory = std::make_shared<EventEmitterPublishSubscribeFactory>(_container, 10);
         setDefaultLogger();
         if (useChar) {
-            _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(_container, 10);
-            _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(_container, 10);
+            _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(eventEmitterPublishSubscribeFactory);
+            _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(eventEmitterPublishSubscribeFactory);
         }
         else {
-            _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(_container, 10);
-            _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(_container, 10);
+            _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(eventEmitterPublishSubscribeFactory);
+            _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(eventEmitterPublishSubscribeFactory);
         }
     } else {
         createFactories(useChar);
