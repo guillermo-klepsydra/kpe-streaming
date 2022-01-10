@@ -86,6 +86,7 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFloat32) {
     environment.setPropertyString("log_filename", "./logfile.log");
     environment.setPropertyInt("log_level", 1);
     environment.setPropertyBool("use_char_data", false);
+    environment.setPropertyBool("use_float_data", true);
     environment.setPropertyBool("stat_socket_container_enable", true);
     environment.setPropertyInt("stat_admin_port", 9595);
     environment.setPropertyInt("stat_system_port", 9696);
@@ -115,6 +116,7 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionChar) {
     environment.setPropertyString("log_filename", "./logfile.log");
     environment.setPropertyInt("log_level", 1);
     environment.setPropertyBool("use_char_data", true);
+    environment.setPropertyBool("use_float_data", false);
     environment.setPropertyBool("stat_socket_container_enable", true);
     environment.setPropertyInt("stat_admin_port", 9595);
     environment.setPropertyInt("stat_system_port", 9696);
@@ -155,6 +157,8 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFileContainer) {
     environment.setPropertyBool("use_default_streaming_factory", false);
     environment.setPropertyInt("number_of_cores", 2);
     environment.setPropertyString("processor_intensive_layers", "max");
+    environment.setPropertyBool("use_char_data", false); //p
+    environment.setPropertyBool("use_float_data", true); //p
 
     std::string jsonFile = std::string(TEST_DATA) + "/streaming_conf.json";
     environment.setPropertyString("streaming_conf_file", jsonFile);
@@ -177,7 +181,7 @@ TEST(StreamingFactoryProvider, InsufficientThreadsError) {
     {
         std::vector<std::shared_ptr<kpsr::streaming::StreamingFactoryProvider>> sut;
         for (size_t i = 0; i < std::thread::hardware_concurrency() * 20; i++) {
-            sut.emplace_back(std::make_shared<kpsr::streaming::StreamingFactoryProvider>(false, false)); // create new provider.
+            sut.emplace_back(std::make_shared<kpsr::streaming::StreamingFactoryProvider>(false, false, true)); // create new provider.
         }
 
         auto start = [&](){
@@ -199,7 +203,7 @@ TEST(StreamingFactoryProvider, InsufficientThreadsError) {
 TEST(StreamingFactoryProvider, MultiStartStopTest) {
     {
         {
-            kpsr::streaming::StreamingFactoryProvider sut(false, false);
+            kpsr::streaming::StreamingFactoryProvider sut(false, false, true);
 
             std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
             EXPECT_NO_THROW(sut.start());
@@ -207,14 +211,14 @@ TEST(StreamingFactoryProvider, MultiStartStopTest) {
         }
 
         {
-            kpsr::streaming::StreamingFactoryProvider sut(false, false);
+            kpsr::streaming::StreamingFactoryProvider sut(false, false, true);
 
             std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
             EXPECT_NO_THROW(sut.start());
             sut.stop();
         }
 
-        kpsr::streaming::StreamingFactoryProvider sut(false, false);
+        kpsr::streaming::StreamingFactoryProvider sut(false, false, true);
 
         std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
         EXPECT_NO_THROW(sut.start());

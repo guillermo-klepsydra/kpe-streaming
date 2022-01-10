@@ -24,7 +24,7 @@
 class StreamingFactoryProviderDefault : public testing::TestWithParam<bool> {
 protected:
     StreamingFactoryProviderDefault()
-        : sut(GetParam(), false)
+        : sut(GetParam(), false, true)
         {}
     // @TODO: Add tests for the case of useChar = true.
     kpsr::streaming::StreamingFactoryProvider sut;

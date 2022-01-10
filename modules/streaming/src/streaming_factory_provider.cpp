@@ -35,7 +35,7 @@
 namespace kpsr {
 namespace streaming {
 
-StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN, bool useChar)
+StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN, bool useChar, bool useFloat)
     : _container(nullptr)
     , _eventLoopFactoryFloat32(nullptr)
     , _eventLoopFactoryChar(nullptr)
@@ -49,12 +49,12 @@ StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN, bool useChar)
             _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(eventEmitterPublishSubscribeFactory);
             _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(eventEmitterPublishSubscribeFactory);
         }
-        else {
+        if (useFloat) {
             _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(eventEmitterPublishSubscribeFactory);
             _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(eventEmitterPublishSubscribeFactory);
         }
     } else {
-        createFactories(useChar);
+        createFactories(useChar, useFloat);
     }
 }
 
@@ -100,14 +100,14 @@ void StreamingFactoryProvider::setDefaultLogger(const std::string& logFileName, 
     }
 }
 
-void StreamingFactoryProvider::createFactories(bool useChar) {
+void StreamingFactoryProvider::createFactories(bool useChar, bool useFloat) {
     check_license();
     auto eventLoopPublishSubscribeFactory = std::make_shared<EventLoopPublishSubscribeFactory>(_container, _streamingPolicy.get());
     if (useChar) {
         _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(eventLoopPublishSubscribeFactory);
         _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(_container);
     }
-    else {
+    if (useFloat) {
         _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(eventLoopPublishSubscribeFactory);
         _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32>(_container);
     }
@@ -138,7 +138,9 @@ void StreamingFactoryProvider::initForEnvironment(kpsr::Environment * environmen
 
     bool useChar = false;
     environment->getPropertyBool("use_char_data", useChar);
-    createFactories(useChar);
+    bool useFloat = true;
+    environment->getPropertyBool("use_float_data", useFloat);
+    createFactories(useChar, useFloat);
 
 }
 

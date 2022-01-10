@@ -33,7 +33,7 @@ namespace streaming {
 class StreamingFactoryProvider {
     
 public:
-    StreamingFactoryProvider(bool testDNN, bool useChar);
+    StreamingFactoryProvider(bool testDNN, bool useChar, bool useFloat);
     StreamingFactoryProvider(const std::string & envFileName, kpsr::Container * container = nullptr);
     StreamingFactoryProvider(kpsr::Environment * environment, kpsr::Container * container = nullptr);
 
@@ -56,7 +56,7 @@ private:
 
     void setDefaultStreaming(kpsr::Environment * environment);
 
-    void createFactories(bool useChar);
+    void createFactories(bool useChar, bool useFloat);
 
     std::unique_ptr<StreamingPolicy> _streamingPolicy;
     kpsr::Container * _container;
