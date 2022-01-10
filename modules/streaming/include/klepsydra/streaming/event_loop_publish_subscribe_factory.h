@@ -21,6 +21,7 @@
 
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
 #include <klepsydra/streaming/streaming_policy.h>
+#include <klepsydra/admin/container_utils.h>
 
 namespace kpsr {
 namespace streaming {
@@ -48,12 +49,10 @@ public:
     template <class T>
     kpsr::Subscriber<T> * getSubscriber(const std::string& stepName) {
         spdlog::debug("EventLoopPublishSubscribeFactory::getSubscriber: stepName: {}", stepName);
-        auto eventLoopName = processStepName(stepName);
+        auto eventLoopName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
         auto eventLoopPtr = getEventLoop(eventLoopName);
         return eventLoopPtr->template getSubscriber<T>(eventLoopName);
     }
-
-    std::string processStepName(const std::string stepName) const;
 
     EventLoopPtr getEventLoop(const std::string & eventLoopName);
 

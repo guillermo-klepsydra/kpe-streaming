@@ -49,16 +49,9 @@ namespace streaming {
         _eventLoops.clear();
     }
 
-    std::string EventLoopPublishSubscribeFactory::processStepName(const std::string stepName) const {
-        std::string eventLoopName = stepName;
-        findAndReplaceAll(eventLoopName, "/", "");
-        return eventLoopName;
-    }
-
     EventLoopPtr EventLoopPublishSubscribeFactory::getEventLoop(const std::string & eventLoopName) {
         return _eventLoops[_streamingPolicy->addStepToEventLoop(eventLoopName)];
     }
-
 
     void EventLoopPublishSubscribeFactory::start() {
         if (spdlog::default_logger()->level() == spdlog::level::debug) {

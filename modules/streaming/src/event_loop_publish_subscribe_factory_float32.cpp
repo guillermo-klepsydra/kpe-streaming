@@ -37,11 +37,11 @@ namespace streaming {
         const std::string & stepName, const size_t vectorSize) {
 
         spdlog::debug("EventLoopPublishSubscribeFactoryFloat32::getPublisher: stepName: {}", stepName);
-        auto eventLoopName = _eventLoopPublishSubscribeFactory->processStepName(stepName);
-        auto eventLoopPtr = _eventLoopPublishSubscribeFactory->getEventLoop(eventLoopName);
+        auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+        auto eventLoopPtr = _eventLoopPublishSubscribeFactory->getEventLoop(escapedStepName);
 
         return eventLoopPtr->template getPublisher<DataBatchWithId<F32AlignedVector>>(
-            eventLoopName,
+            escapedStepName,
             _eventLoopPublishSubscribeFactory->getPoolSize(),
             [vectorSize] (DataBatchWithId<F32AlignedVector> & data) {
                 data.data->resize(vectorSize);
@@ -53,11 +53,11 @@ namespace streaming {
         const std::string & stepName, const size_t vectorSize) {
 
         spdlog::debug("EventLoopPublishSubscribeFactory::getPublisher: stepName: {}", stepName);
-        auto eventLoopName = _eventLoopPublishSubscribeFactory->processStepName(stepName);
-        auto eventLoopPtr = _eventLoopPublishSubscribeFactory->getEventLoop(eventLoopName);
+        auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+        auto eventLoopPtr = _eventLoopPublishSubscribeFactory->getEventLoop(escapedStepName);
 
         return eventLoopPtr->template getPublisher<DataBatchWithId<std::vector<float>>>(
-            eventLoopName,
+            escapedStepName,
             _eventLoopPublishSubscribeFactory->getPoolSize(),
             [vectorSize] (DataBatchWithId<std::vector<float>> & data) {
                 data.data->resize(vectorSize);
@@ -69,11 +69,11 @@ namespace streaming {
             const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) {
 
             spdlog::debug("EventLoopPublishSubscribeFactory::getPublisher: stepName: {}", stepName);
-            auto eventLoopName = _eventLoopPublishSubscribeFactory->processStepName(stepName);
-            auto eventLoopPtr = _eventLoopPublishSubscribeFactory->getEventLoop(eventLoopName);
+            auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+            auto eventLoopPtr = _eventLoopPublishSubscribeFactory->getEventLoop(escapedStepName);
 
             return eventLoopPtr->template getPublisher<DataBatchWithId<std::vector<F32AlignedVector>>>(
-                eventLoopName,
+                escapedStepName,
                 _eventLoopPublishSubscribeFactory->getPoolSize(),
                 [multiVectorSize, vectorSize] (DataBatchWithId<std::vector<F32AlignedVector>> & data) {
                     data.data->resize(multiVectorSize);

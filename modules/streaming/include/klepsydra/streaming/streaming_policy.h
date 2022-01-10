@@ -80,6 +80,4 @@ public:
 
 const static std::string STREAMING_CONF_YAML_NODE("streaming_configuration");
 
-void findAndReplaceAll(std::string & data, std::string toSearch, std::string replaceStr);
-
 #endif
