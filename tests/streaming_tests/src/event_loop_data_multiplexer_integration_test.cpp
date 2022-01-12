@@ -27,7 +27,7 @@ TEST(EventLoopDataMultiplexerPublishSubscribeFactoryTest, IntegrationTest)
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr);
+    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr, nullptr);
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> *
         dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer",

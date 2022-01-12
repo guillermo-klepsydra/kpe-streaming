@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     spdlog::set_pattern("[%c] [%H:%M:%S %f] [%n] [%l] [%t] %v");
     spdlog::set_level(spdlog::level::info); // Set global log level to info
-    auto kpsrLogger = spdlog::stdout_color_mt("kpsr");
+    auto kpsrLogger = spdlog::stdout_color_mt("klepsydra");
     spdlog::set_default_logger(kpsrLogger);
 
     ::testing::InitGoogleTest(&argc, argv);

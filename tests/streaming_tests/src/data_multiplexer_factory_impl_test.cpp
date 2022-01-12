@@ -22,17 +22,61 @@
 #include <numeric>
 
 #include "gtest/gtest.h"
-TEST(DataMultiplexerFactoryTest, ConstructorTest)
+#include <klepsydra/mem_core/mem_env.h>
+
+using TestTuple = std::tuple<kpsr::Container *, bool>;
+
+class DataMultiplexerFactoryTest : public ::testing::TestWithParam<TestTuple>
 {
+protected:
+    DataMultiplexerFactoryTest()
+        : container(nullptr)
+        , parallisedStreams()
+        , defaultStreamingPolicy(std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(
+              std::thread::hardware_concurrency(), 2, 1, 1, parallisedStreams))
+        , streamingPolicy(nullptr)
+    {}
+    virtual void SetUp()
+    {
+        bool isNullStreaming;
+        std::tie(container, isNullStreaming) = GetParam();
+        if (isNullStreaming) {
+            streamingPolicy = defaultStreamingPolicy.get();
+        }
+    }
+
+    virtual void TearDown()
+    {
+        streamingPolicy = nullptr;
+        container = nullptr;
+    }
+    kpsr::Container *container;
+    std::vector<std::string> parallisedStreams;
+    std::unique_ptr<kpsr::streaming::StreamingPolicy> defaultStreamingPolicy;
+    kpsr::streaming::StreamingPolicy *streamingPolicy;
+};
+
+kpsr::mem::MemEnv testEnvironment;
+kpsr::Container testContainer(&testEnvironment, "TestEnvironment");
+
+INSTANTIATE_TEST_SUITE_P(DataMultiplexerFactoryTests,
+                         DataMultiplexerFactoryTest,
+                         ::testing::Combine(::testing::Values(nullptr, &testContainer),
+                                            ::testing::Bool()));
+
+TEST_P(DataMultiplexerFactoryTest, ConstructorTest)
+{
+    ASSERT_NO_THROW(kpsr::streaming::DataMultiplexerFactoryFloat32
+                        dataMultiplexerFloat32Instance(container, streamingPolicy));
     ASSERT_NO_THROW(
-        kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerFloat32Instance(nullptr));
-    ASSERT_NO_THROW(
-        kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerCharInstance(nullptr));
+        kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerCharInstance(container,
+                                                                                streamingPolicy));
 }
 
-TEST(DataMultiplexerFactoryTest, getPubSubFloat32Test)
+TEST_P(DataMultiplexerFactoryTest, getPubSubFloat32Test)
 {
-    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr);
+    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(container,
+                                                                           streamingPolicy);
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
         *dataMultiplexerPublisher = nullptr;
@@ -54,9 +98,9 @@ TEST(DataMultiplexerFactoryTest, getPubSubFloat32Test)
     ASSERT_NO_THROW(dataMultiplexerSubscriber->removeListener(registerListenerName));
 }
 
-TEST(DataMultiplexerFactoryTest, getPubSubCharTest)
+TEST_P(DataMultiplexerFactoryTest, getPubSubCharTest)
 {
-    kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerInstance(nullptr);
+    kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerInstance(container, streamingPolicy);
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>> *dataMultiplexerPublisher =
         nullptr;
@@ -76,13 +120,14 @@ TEST(DataMultiplexerFactoryTest, getPubSubCharTest)
     ASSERT_NO_THROW(dataMultiplexerSubscriber->removeListener(registerListenerName));
 }
 
-TEST(DataMultiplexerFactoryFloat32Test, SimpleTest)
+TEST_P(DataMultiplexerFactoryTest, SimpleTestFloat)
 {
     const int num_listeners = 2;
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr);
+    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(container,
+                                                                           streamingPolicy);
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> *
         dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer",
@@ -114,14 +159,129 @@ TEST(DataMultiplexerFactoryFloat32Test, SimpleTest)
     });
 
     dataMultipexerPublisherThread.join();
+
+    std::vector<size_t> discardedMessages(data_received_ctr.size(), 0);
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
-        dataMultiplexerSubscriber->removeListener("data_received_ctr_" + std::to_string(i));
+        auto listenerName = "data_received_ctr_" + std::to_string(i);
+        discardedMessages[i] = dataMultiplexerSubscriber->getSubscriptionStats(listenerName)
+                                   ->_totalDiscardedEvents;
+        dataMultiplexerSubscriber->removeListener(listenerName);
     }
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         spdlog::debug("Data received counter {} value = {}", i, data_received_ctr[i]);
     }
     spdlog::debug("Data sent counter {}", data_sent_ctr);
-    EXPECT_EQ(std::accumulate(data_received_ctr.begin(), data_received_ctr.end(), 0),
+    EXPECT_EQ(std::accumulate(data_received_ctr.begin(), data_received_ctr.end(), 0) +
+                  std::accumulate(discardedMessages.begin(), discardedMessages.end(), 0),
+              num_listeners * data_sent_ctr);
+}
+
+TEST_P(DataMultiplexerFactoryTest, SimpleTestChar)
+{
+    const int num_listeners = 2;
+    int data_sent_ctr = 0;
+    std::vector<int> data_received_ctr(num_listeners, 0);
+
+    kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerInstance(container, streamingPolicy);
+
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>> *dataMultiplexerPublisher =
+        dataMultiplexerInstance.getPublisherChar("dataMultiplexer", 3);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<char>>> *
+        dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberChar("dataMultiplexer", 3);
+
+    for (size_t i = 0; i < data_received_ctr.size(); i++) {
+        dataMultiplexerSubscriber
+            ->registerListener("data_received_ctr_" + std::to_string(i),
+                               [i, &data_received_ctr](
+                                   const kpsr::streaming::DataBatchWithId<std::vector<char>> &event) {
+                                   data_received_ctr[i]++;
+                               });
+    }
+
+    std::thread dataMultipexerPublisherThread([&dataMultiplexerPublisher, &data_sent_ctr]() {
+        for (size_t i = 0; i < 5; i++) {
+            std::shared_ptr<std::vector<char>> inputPtr = std::make_shared<std::vector<char>>(
+                std::initializer_list<char>{char(i + 1), char(i + 2), char(i + 3)});
+            kpsr::streaming::DataBatchWithId<std::vector<char>> inputDataBatchWithId(0, inputPtr);
+            dataMultiplexerPublisher->publish(inputDataBatchWithId);
+            data_sent_ctr++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+    });
+
+    dataMultipexerPublisherThread.join();
+
+    std::vector<size_t> discardedMessages(data_received_ctr.size(), 0);
+    for (size_t i = 0; i < data_received_ctr.size(); i++) {
+        auto listenerName = "data_received_ctr_" + std::to_string(i);
+        discardedMessages[i] = dataMultiplexerSubscriber->getSubscriptionStats(listenerName)
+                                   ->_totalDiscardedEvents;
+        dataMultiplexerSubscriber->removeListener(listenerName);
+    }
+
+    for (size_t i = 0; i < data_received_ctr.size(); i++) {
+        spdlog::debug("Data received counter {} value = {}", i, data_received_ctr[i]);
+    }
+    spdlog::debug("Data sent counter {}", data_sent_ctr);
+    EXPECT_EQ(std::accumulate(data_received_ctr.begin(), data_received_ctr.end(), 0) +
+                  std::accumulate(discardedMessages.begin(), discardedMessages.end(), 0),
+              num_listeners * data_sent_ctr);
+}
+
+TEST_P(DataMultiplexerFactoryTest, SimpleTestUChar)
+{
+    const int num_listeners = 2;
+    int data_sent_ctr = 0;
+    std::vector<int> data_received_ctr(num_listeners, 0);
+
+    kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerInstance(container, streamingPolicy);
+
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
+        *dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherUChar("dataMultiplexer", 3);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
+        *dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberUChar("dataMultiplexer",
+                                                                                3);
+
+    for (size_t i = 0; i < data_received_ctr.size(); i++) {
+        dataMultiplexerSubscriber->registerListener(
+            "data_received_ctr_" + std::to_string(i),
+            [i, &data_received_ctr](
+                const kpsr::streaming::DataBatchWithId<std::vector<unsigned char>> &event) {
+                data_received_ctr[i]++;
+            });
+    }
+
+    std::thread dataMultipexerPublisherThread([&dataMultiplexerPublisher, &data_sent_ctr]() {
+        for (size_t i = 0; i < 5; i++) {
+            std::shared_ptr<std::vector<unsigned char>> inputPtr =
+                std::make_shared<std::vector<unsigned char>>(
+                    std::initializer_list<unsigned char>{(unsigned char) (i + 1),
+                                                         (unsigned char) (i + 2),
+                                                         (unsigned char) (i + 3)});
+            kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>
+                inputDataBatchWithId(0, inputPtr);
+            dataMultiplexerPublisher->publish(inputDataBatchWithId);
+            data_sent_ctr++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+    });
+
+    dataMultipexerPublisherThread.join();
+
+    std::vector<size_t> discardedMessages(data_received_ctr.size(), 0);
+    for (size_t i = 0; i < data_received_ctr.size(); i++) {
+        auto listenerName = "data_received_ctr_" + std::to_string(i);
+        discardedMessages[i] = dataMultiplexerSubscriber->getSubscriptionStats(listenerName)
+                                   ->_totalDiscardedEvents;
+        dataMultiplexerSubscriber->removeListener(listenerName);
+    }
+
+    for (size_t i = 0; i < data_received_ctr.size(); i++) {
+        spdlog::debug("Data received counter {} value = {}", i, data_received_ctr[i]);
+    }
+    spdlog::debug("Data sent counter {}", data_sent_ctr);
+    EXPECT_EQ(std::accumulate(data_received_ctr.begin(), data_received_ctr.end(), 0) +
+                  std::accumulate(discardedMessages.begin(), discardedMessages.end(), 0),
               num_listeners * data_sent_ctr);
 }

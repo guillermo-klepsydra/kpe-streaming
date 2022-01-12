@@ -16,15 +16,25 @@
 *
 *****************************************************************************/
 
+#include <klepsydra/admin/container_utils.h>
 #include <klepsydra/streaming/data_multiplexer_factory_float32.h>
 
 namespace kpsr {
 namespace streaming {
 
-DataMultiplexerFactoryFloat32::DataMultiplexerFactoryFloat32(kpsr::Container *container)
+DataMultiplexerFactoryFloat32::DataMultiplexerFactoryFloat32(kpsr::Container *container,
+                                                             StreamingPolicy *streamingPolicy)
     : kpsr::Service(nullptr, "DataMultiplexerFactoryFloat32Service")
     , _container(container)
-{}
+{
+    if (streamingPolicy) {
+        _affinityIdFunction = [streamingPolicy](const std::string &name) {
+            std::vector<int> cpuAffinity = {};
+            cpuAffinity.push_back(streamingPolicy->addStepToEventLoop(name));
+            return cpuAffinity;
+        };
+    }
+}
 
 DataMultiplexerFactoryFloat32::~DataMultiplexerFactoryFloat32() {}
 
@@ -48,7 +58,8 @@ DataMultiplexerFactoryFloat32::getDataMultiplexerF32A(const std::string &stepNam
                 [vectorSize](DataBatchWithId<F32AlignedVector> &data) {
                     data.data->resize(vectorSize);
                 },
-                nullptr));
+                nullptr,
+                _affinityIdFunction));
     }
 }
 
@@ -72,7 +83,8 @@ DataMultiplexerFactoryFloat32::getDataMultiplexerF32(const std::string &stepName
                     [vectorSize](kpsr::streaming::DataBatchWithId<std::vector<float>> &data) {
                         data.data->resize(vectorSize);
                     },
-                    nullptr));
+                    nullptr,
+                    _affinityIdFunction));
     }
 }
 
@@ -101,7 +113,8 @@ DataMultiplexerFactoryFloat32::getDataMultiplexerMF32A(const std::string &stepNa
                             d.resize(vectorSize);
                         }
                     },
-                    nullptr));
+                    nullptr,
+                    _affinityIdFunction));
     }
 }
 
@@ -110,7 +123,8 @@ kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVect
                                                            const size_t vectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryFloat32::getPublisherF32Aligned: stepName: {}", stepName);
-    return getDataMultiplexerF32A(stepName, vectorSize)->getPublisher();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerF32A(escapedStepName, vectorSize)->getPublisher();
 }
 
 kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
@@ -118,7 +132,8 @@ kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVec
                                                             const size_t vectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryFloat32::getSubscriberF32Aligned: stepName: {}", stepName);
-    return getDataMultiplexerF32A(stepName, vectorSize)->getSubscriber();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerF32A(escapedStepName, vectorSize)->getSubscriber();
 }
 
 kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>>
@@ -127,7 +142,8 @@ kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F3
                                                                 const size_t multiVectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryFloat32::getPublisherMF32Aligned: stepName: {}", stepName);
-    return getDataMultiplexerMF32A(stepName, vectorSize, multiVectorSize)->getPublisher();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerMF32A(escapedStepName, vectorSize, multiVectorSize)->getPublisher();
 }
 
 kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>>
@@ -136,7 +152,8 @@ kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F
                                                                  const size_t multiVectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryFloat32::getSubscriberMF32Aligned: stepName: {}", stepName);
-    return getDataMultiplexerMF32A(stepName, vectorSize, multiVectorSize)->getSubscriber();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerMF32A(escapedStepName, vectorSize, multiVectorSize)->getSubscriber();
 }
 
 kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<float>>>
@@ -144,7 +161,8 @@ kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<float>>>
                                                     const size_t vectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryFloat32::getPublisherF32: stepName: {}", stepName);
-    return getDataMultiplexerF32(stepName, vectorSize)->getPublisher();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerF32(escapedStepName, vectorSize)->getPublisher();
 }
 
 kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<float>>>
@@ -152,7 +170,8 @@ kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<float>>>
                                                      const size_t vectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryFloat32::getSubscriberF32: stepName: {}", stepName);
-    return getDataMultiplexerF32(stepName, vectorSize)->getSubscriber();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerF32(escapedStepName, vectorSize)->getSubscriber();
 }
 
 void DataMultiplexerFactoryFloat32::start() {}

@@ -26,6 +26,7 @@
 
 #include <klepsydra/streaming/publish_subscribe_factory_float32.h>
 #include <klepsydra/streaming/stream_internal_types.h>
+#include <klepsydra/streaming/streaming_policy.h>
 #include <klepsydra/streaming/streaming_types.h>
 
 namespace kpsr {
@@ -34,7 +35,7 @@ namespace streaming {
 class DataMultiplexerFactoryFloat32 : public PublishSubscribeFactoryFloat32
 {
 public:
-    DataMultiplexerFactoryFloat32(kpsr::Container *container);
+    DataMultiplexerFactoryFloat32(kpsr::Container *container, StreamingPolicy *streamingPolicy);
 
     ~DataMultiplexerFactoryFloat32();
 
@@ -81,6 +82,7 @@ private:
     DataMultiplexerPtr<std::vector<kpsr::streaming::F32AlignedVector>> getDataMultiplexerMF32A(
         const std::string &stepName, const size_t vectorSize, const size_t multiVectorSize);
     kpsr::Container *_container;
+    std::function<std::vector<int>(const std::string &)> _affinityIdFunction;
     DataMultiplexerFactoryProvider _dataMultiplexerProviderFactory;
 };
 } // namespace streaming

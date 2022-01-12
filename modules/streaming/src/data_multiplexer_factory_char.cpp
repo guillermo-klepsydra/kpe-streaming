@@ -16,15 +16,25 @@
 *
 *****************************************************************************/
 
+#include <klepsydra/admin/container_utils.h>
 #include <klepsydra/streaming/data_multiplexer_factory_char.h>
 
 namespace kpsr {
 namespace streaming {
 
-DataMultiplexerFactoryChar::DataMultiplexerFactoryChar(kpsr::Container *container)
+DataMultiplexerFactoryChar::DataMultiplexerFactoryChar(kpsr::Container *container,
+                                                       StreamingPolicy *streamingPolicy)
     : kpsr::Service(nullptr, "DataMultiplexerFactoryCharService")
     , _container(container)
-{}
+{
+    if (streamingPolicy) {
+        _affinityIdFunction = [streamingPolicy](const std::string &name) {
+            std::vector<int> cpuAffinity = {};
+            cpuAffinity.push_back(streamingPolicy->addStepToEventLoop(name));
+            return cpuAffinity;
+        };
+    }
+}
 
 DataMultiplexerFactoryChar::~DataMultiplexerFactoryChar() {}
 
@@ -37,7 +47,8 @@ kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>>
                                                   const size_t vectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryChar::getPublisherF32: stepName: {}", stepName);
-    return getDataMultiplexerChar(stepName, vectorSize)->getPublisher();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerChar(escapedStepName, vectorSize)->getPublisher();
 }
 
 kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<char>>>
@@ -45,7 +56,8 @@ kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<char>>>
                                                    const size_t vectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryChar::getSubscriberF32: stepName: {}", stepName);
-    return getDataMultiplexerChar(stepName, vectorSize)->getSubscriber();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerChar(escapedStepName, vectorSize)->getSubscriber();
 }
 
 kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
@@ -53,7 +65,8 @@ kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
                                                    const size_t vectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryChar::getPublisherF32: stepName: {}", stepName);
-    return getDataMultiplexerUChar(stepName, vectorSize)->getPublisher();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerUChar(escapedStepName, vectorSize)->getPublisher();
 }
 
 kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
@@ -61,7 +74,8 @@ kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
                                                     const size_t vectorSize)
 {
     spdlog::debug("DataMultiplexerFactoryChar::getSubscriberF32: stepName: {}", stepName);
-    return getDataMultiplexerUChar(stepName, vectorSize)->getSubscriber();
+    auto escapedStepName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
+    return getDataMultiplexerUChar(escapedStepName, vectorSize)->getSubscriber();
 }
 
 DataMultiplexerFactoryChar::DataMultiplexerPtr<std::vector<char>>
@@ -83,7 +97,8 @@ DataMultiplexerFactoryChar::getDataMultiplexerChar(const std::string &stepName,
                     [vectorSize](kpsr::streaming::DataBatchWithId<std::vector<char>> &data) {
                         data.data->resize(vectorSize);
                     },
-                    nullptr));
+                    nullptr,
+                    _affinityIdFunction));
     }
 }
 
@@ -108,7 +123,8 @@ DataMultiplexerFactoryChar::getDataMultiplexerUChar(const std::string &stepName,
                     [vectorSize](kpsr::streaming::DataBatchWithId<std::vector<unsigned char>> &data) {
                         data.data->resize(vectorSize);
                     },
-                    nullptr));
+                    nullptr,
+                    _affinityIdFunction));
     }
 }
 

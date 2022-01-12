@@ -40,7 +40,7 @@ SET(PROJ_MAIN_NAME "streaming")
 PROJECT(${PROJ_MAIN_NAME})
 
 set(KPSR_STREAMING_MAJOR_VERSION 4)
-set(KPSR_STREAMING_MINOR_VERSION 0)
+set(KPSR_STREAMING_MINOR_VERSION 1)
 set(KPSR_STREAMING_PATCH_VERSION 0)
 set(KPSR_STREAMING_VERSION
     ${KPSR_STREAMING_MAJOR_VERSION}.${KPSR_STREAMING_MINOR_VERSION}.${KPSR_STREAMING_PATCH_VERSION})
@@ -187,6 +187,10 @@ if (KPSR_WITH_CODE_METRICS AND CMAKE_BUILD_TYPE MATCHES Debug AND CMAKE_COMPILER
     NAME coverage
     EXECUTABLE make test
     )
+  setup_target_for_coverage_gcovr_html(
+    NAME coverage_html
+    EXECUTABLE make test
+    )
 ENDIF()
 
 if (DEFINED KPSR_WITH_MARCH)
@@ -206,8 +210,8 @@ include(KlepsydraBuild)
 # Project Logic
 # ------------------------------------------------------------------------------------------------------
 
-find_package(Klepsydra REQUIRED)
-find_package(KlepsydraAdmin REQUIRED)
+find_package(Klepsydra 4.0.1 REQUIRED)
+find_package(KlepsydraAdmin 4.0.0 REQUIRED)
 ######################################################################################
 # ADD SUB FOLDERS
 ######################################################################################

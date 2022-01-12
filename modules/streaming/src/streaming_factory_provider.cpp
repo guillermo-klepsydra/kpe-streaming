@@ -125,15 +125,17 @@ void StreamingFactoryProvider::createFactories(bool useChar, bool useFloat)
         _eventLoopFactoryChar =
             std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(
                 eventLoopPublishSubscribeFactory);
-        _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(
-            _container);
+        _dataMultiplexerFactoryChar =
+            std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(_container,
+                                                                          _streamingPolicy.get());
     }
     if (useFloat) {
         _eventLoopFactoryFloat32 =
             std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(
                 eventLoopPublishSubscribeFactory);
         _dataMultiplexerFactoryFloat32 =
-            std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32>(_container);
+            std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32>(_container,
+                                                                             _streamingPolicy.get());
     }
 }
 
