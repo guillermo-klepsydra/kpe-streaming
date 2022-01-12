@@ -23,38 +23,59 @@
 
 #include "gtest/gtest.h"
 
-TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest) {
-
+TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest)
+{
     const int num_listeners = 2;
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
     kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr);
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer", 3);
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> * dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberF32Aligned("dataMultiplexer", 3);
-    
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> *
+        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer",
+                                                                                  3);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
+        *dataMultiplexerSubscriber =
+            dataMultiplexerInstance.getSubscriberF32Aligned("dataMultiplexer", 3);
+
     std::vector<std::string> parallisedStreams = {};
-    std::unique_ptr<kpsr::streaming::DefaultStreamingPolicy> defaultStreamingPolicy = std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(std::thread::hardware_concurrency(), 2, 1, 1, parallisedStreams);
-    auto eventLoopPublishSubscribeFactory = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr, defaultStreamingPolicy.get());
-    kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventloopInstance(eventLoopPublishSubscribeFactory);
+    std::unique_ptr<kpsr::streaming::DefaultStreamingPolicy> defaultStreamingPolicy =
+        std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(std::thread::hardware_concurrency(),
+                                                                  2,
+                                                                  1,
+                                                                  1,
+                                                                  parallisedStreams);
+    auto eventLoopPublishSubscribeFactory = std::make_shared<
+        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr, defaultStreamingPolicy.get());
+    kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventloopInstance(
+        eventLoopPublishSubscribeFactory);
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
-        dataMultiplexerSubscriber->registerListener("dataMultiplexer_" + std::to_string(i), [i, &eventloopInstance](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){
-                                                                                                    eventloopInstance.getPublisherF32Aligned("eventloop_" + std::to_string(i), 3)->publish(event);                                 
-                                                });
+        dataMultiplexerSubscriber->registerListener(
+            "dataMultiplexer_" + std::to_string(i),
+            [i, &eventloopInstance](
+                const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &event) {
+                eventloopInstance.getPublisherF32Aligned("eventloop_" + std::to_string(i), 3)
+                    ->publish(event);
+            });
 
-        eventloopInstance.getSubscriberF32Aligned("eventloop_" + std::to_string(i), 3)->registerListener("data_received_ctr_" + std::to_string(i), [i, &data_received_ctr](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> & event){
-                                                                                                                                           data_received_ctr[i]++; 
-                                                                                });
+        eventloopInstance.getSubscriberF32Aligned("eventloop_" + std::to_string(i), 3)
+            ->registerListener("data_received_ctr_" + std::to_string(i),
+                               [i, &data_received_ctr](const kpsr::streaming::DataBatchWithId<
+                                                       kpsr::streaming::F32AlignedVector> &event) {
+                                   data_received_ctr[i]++;
+                               });
     }
-    
+
     eventloopInstance.startup();
 
     std::thread dataMultipexerPublisherThread([&dataMultiplexerPublisher, &data_sent_ctr]() {
         for (int i = 0; i < 5; i++) {
-            std::shared_ptr<kpsr::streaming::F32AlignedVector> inputPtr = std::make_shared<kpsr::streaming::F32AlignedVector>(std::initializer_list<float>{float(i+1), float(i+2), float(i+3)});
-            kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> inputDataBatchWithId(0, inputPtr);
+            std::shared_ptr<kpsr::streaming::F32AlignedVector> inputPtr =
+                std::make_shared<kpsr::streaming::F32AlignedVector>(
+                    std::initializer_list<float>{float(i + 1), float(i + 2), float(i + 3)});
+            kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>
+                inputDataBatchWithId(0, inputPtr);
             dataMultiplexerPublisher->publish(inputDataBatchWithId);
             data_sent_ctr++;
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -63,16 +84,17 @@ TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest) {
 
     dataMultipexerPublisherThread.join();
     eventloopInstance.shutdown();
-    
+
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         dataMultiplexerSubscriber->removeListener("dataMultiplexer_" + std::to_string(i));
-        eventloopInstance.getSubscriberF32Aligned("eventloop_" + std::to_string(i), 3)->removeListener("data_received_ctr_" + std::to_string(i));
+        eventloopInstance.getSubscriberF32Aligned("eventloop_" + std::to_string(i), 3)
+            ->removeListener("data_received_ctr_" + std::to_string(i));
     }
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         spdlog::debug("Data received counter {} value = {}", i, data_received_ctr[i]);
     }
     spdlog::debug("Data sent counter {}", data_sent_ctr);
-    EXPECT_EQ(std::accumulate(data_received_ctr.begin(), data_received_ctr.end(), 0), num_listeners*data_sent_ctr);
-
+    EXPECT_EQ(std::accumulate(data_received_ctr.begin(), data_received_ctr.end(), 0),
+              num_listeners * data_sent_ctr);
 }

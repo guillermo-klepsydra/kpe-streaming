@@ -29,23 +29,23 @@ namespace streaming {
 class EventEmitterPublishSubscribeFactory
 {
 public:
-    EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize);
+    EventEmitterPublishSubscribeFactory(kpsr::Container *container, int poolSize);
 
     virtual ~EventEmitterPublishSubscribeFactory();
 
-    kpsr::Container* getContainer();
-    EventEmitterFactory& getEventEmitterFactory();
-    int& getPoolSize();
+    kpsr::Container *getContainer();
+    EventEmitterFactory &getEventEmitterFactory();
+    int &getPoolSize();
 
     void start() {}
     void stop() {}
 
 protected:
-    kpsr::Container * _container;
+    kpsr::Container *_container;
     EventEmitterFactory _eventEmitterFactory;
     int _poolSize;
 };
-}
-}
+} // namespace streaming
+} // namespace kpsr
 
 #endif // EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H

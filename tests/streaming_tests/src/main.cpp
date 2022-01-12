@@ -17,8 +17,8 @@
 *****************************************************************************/
 
 #include "gtest/gtest.h"
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
 
@@ -32,9 +32,7 @@ int main(int argc, char **argv)
     auto kpsrLogger = spdlog::stdout_color_mt("kpsr");
     spdlog::set_default_logger(kpsrLogger);
 
-
     ::testing::InitGoogleTest(&argc, argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }
-

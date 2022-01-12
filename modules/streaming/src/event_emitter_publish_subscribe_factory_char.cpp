@@ -22,81 +22,103 @@ namespace kpsr {
 namespace streaming {
 
 EventEmitterPublishSubscribeFactoryChar::EventEmitterPublishSubscribeFactoryChar(
-    std::shared_ptr<EventEmitterPublishSubscribeFactory> & eventEmitterPublishSubscribeFactory)
+    std::shared_ptr<EventEmitterPublishSubscribeFactory> &eventEmitterPublishSubscribeFactory)
     : kpsr::Service(nullptr, "EmitterPubSubFactoryService")
     , _eventEmitterPublishSubscribeFactory(eventEmitterPublishSubscribeFactory)
-{
-}
+{}
 
-EventEmitterPublishSubscribeFactoryChar::~EventEmitterPublishSubscribeFactoryChar()
-{
-}
+EventEmitterPublishSubscribeFactoryChar::~EventEmitterPublishSubscribeFactoryChar() {}
 
-std::shared_ptr<EventEmitterPublishSubscribeFactoryChar::EventEmitterChar> EventEmitterPublishSubscribeFactoryChar::getEventEmitterChar(const std::string & stepName, const size_t vectorSize) {
+std::shared_ptr<EventEmitterPublishSubscribeFactoryChar::EventEmitterChar>
+EventEmitterPublishSubscribeFactoryChar::getEventEmitterChar(const std::string &stepName,
+                                                             const size_t vectorSize)
+{
     auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
     auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<char>>>(stepName);
     if (emitter) {
         return emitter;
     } else {
-        return eventEmitterFactory.insertEmitter(
-            stepName,
-            std::make_shared<EventEmitterChar>(
-                _eventEmitterPublishSubscribeFactory->getContainer(),
-                stepName,
-                _eventEmitterPublishSubscribeFactory->getPoolSize(),
-                [vectorSize] (DataBatchWithId<std::vector<char>> & data) {
-                    data.data->resize(vectorSize);
-                },
-                nullptr));
+        return eventEmitterFactory
+            .insertEmitter(stepName,
+                           std::make_shared<EventEmitterChar>(
+                               _eventEmitterPublishSubscribeFactory->getContainer(),
+                               stepName,
+                               _eventEmitterPublishSubscribeFactory->getPoolSize(),
+                               [vectorSize](DataBatchWithId<std::vector<char>> &data) {
+                                   data.data->resize(vectorSize);
+                               },
+                               nullptr));
     }
 }
 
-std::shared_ptr<EventEmitterPublishSubscribeFactoryChar::EventEmitterUChar> EventEmitterPublishSubscribeFactoryChar::getEventEmitterUChar(const std::string & stepName, const size_t vectorSize) {
+std::shared_ptr<EventEmitterPublishSubscribeFactoryChar::EventEmitterUChar>
+EventEmitterPublishSubscribeFactoryChar::getEventEmitterUChar(const std::string &stepName,
+                                                              const size_t vectorSize)
+{
     auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
-    auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<unsigned char>>>(stepName);
+    auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<unsigned char>>>(
+        stepName);
     if (emitter) {
         return emitter;
     } else {
-        return eventEmitterFactory.insertEmitter(
-            stepName,
-            std::make_shared<EventEmitterUChar>(
-                _eventEmitterPublishSubscribeFactory->getContainer(),
-                stepName,
-                _eventEmitterPublishSubscribeFactory->getPoolSize(),
-                [vectorSize] (DataBatchWithId<std::vector<unsigned char>> & data) {
-                    data.data->resize(vectorSize);
-                },
-                nullptr));
+        return eventEmitterFactory
+            .insertEmitter(stepName,
+                           std::make_shared<EventEmitterUChar>(
+                               _eventEmitterPublishSubscribeFactory->getContainer(),
+                               stepName,
+                               _eventEmitterPublishSubscribeFactory->getPoolSize(),
+                               [vectorSize](DataBatchWithId<std::vector<unsigned char>> &data) {
+                                   data.data->resize(vectorSize);
+                               },
+                               nullptr));
     }
 }
 
-kpsr::Publisher<DataBatchWithId<std::vector<char>>> * EventEmitterPublishSubscribeFactoryChar::getPublisherChar(const std::string & stepName, const size_t vectorSize) {
-    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getPublisherChar: stepName: {}", stepName);
+kpsr::Publisher<DataBatchWithId<std::vector<char>>>
+    *EventEmitterPublishSubscribeFactoryChar::getPublisherChar(const std::string &stepName,
+                                                               const size_t vectorSize)
+{
+    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getPublisherChar: stepName: {}",
+                  stepName);
     return getEventEmitterChar(stepName, vectorSize)->getPublisher();
 }
 
-kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * EventEmitterPublishSubscribeFactoryChar::getSubscriberChar(const std::string & stepName, const size_t vectorSize) {
-    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getSubscriberChar: stepName: {}", stepName);
+kpsr::Subscriber<DataBatchWithId<std::vector<char>>>
+    *EventEmitterPublishSubscribeFactoryChar::getSubscriberChar(const std::string &stepName,
+                                                                const size_t vectorSize)
+{
+    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getSubscriberChar: stepName: {}",
+                  stepName);
     return getEventEmitterChar(stepName, vectorSize)->getSubscriber();
 }
 
-kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * EventEmitterPublishSubscribeFactoryChar::getPublisherUChar(const std::string & stepName, const size_t vectorSize) {
-    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getPublisherChar: stepName: {}", stepName);
+kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>>
+    *EventEmitterPublishSubscribeFactoryChar::getPublisherUChar(const std::string &stepName,
+                                                                const size_t vectorSize)
+{
+    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getPublisherChar: stepName: {}",
+                  stepName);
     return getEventEmitterUChar(stepName, vectorSize)->getPublisher();
 }
 
-kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * EventEmitterPublishSubscribeFactoryChar::getSubscriberUChar(const std::string & stepName, const size_t vectorSize) {
-    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getSubscriberChar: stepName: {}", stepName);
+kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>>
+    *EventEmitterPublishSubscribeFactoryChar::getSubscriberUChar(const std::string &stepName,
+                                                                 const size_t vectorSize)
+{
+    spdlog::debug("EventEmitterPublishSubscribeFactoryChar::getSubscriberChar: stepName: {}",
+                  stepName);
     return getEventEmitterUChar(stepName, vectorSize)->getSubscriber();
 }
 
-void EventEmitterPublishSubscribeFactoryChar::start() {
+void EventEmitterPublishSubscribeFactoryChar::start()
+{
     _eventEmitterPublishSubscribeFactory->start();
 }
 
-void EventEmitterPublishSubscribeFactoryChar::stop() {
+void EventEmitterPublishSubscribeFactoryChar::stop()
+{
     _eventEmitterPublishSubscribeFactory->stop();
 }
 
-}
-}
+} // namespace streaming
+} // namespace kpsr

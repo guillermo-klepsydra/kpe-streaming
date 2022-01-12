@@ -1,0 +1,156 @@
+name: Code style check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  format-check:
+    name: Code style
+    if: github.ref != 'refs/heads/main'
+    runs-on: [self-hosted, aws, general, X64]
+    container:
+      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.0.0
+      credentials:
+        username: AWS
+        password: ${{ secrets.ECR_PASSWORD }}
+    steps:
+      - name: Clone kpe-core
+        uses: actions/checkout@v2
+        with:
+          repository: klepsydra-technologies/kpe-core
+          submodules: recursive
+          ref: main
+          path: kpe-core
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Install kpe-core
+        run: |
+          mkdir build && cd build 
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../
+          make -j$(nproc)
+          sudo make -j$(nproc) install
+        working-directory: kpe-core
+
+      - name: Remove kpe-core sources
+        run: |
+          sudo rm -rf ${GITHUB_WORKSPACE}/kpe-core
+
+      - name: Clone kpe-admin
+        uses: actions/checkout@v2
+        with:
+          repository: klepsydra-technologies/kpe-admin
+          submodules: recursive
+          ref: main
+          path: kpe-admin
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Install kpe-admin
+        run: |
+          mkdir build && cd build 
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DCMAKE_BUILD_TYPE=Debug  -DKPSR_NO_LICENSE=true ../
+          make -j$(nproc)
+          sudo make -j$(nproc) install
+        working-directory: kpe-admin
+
+      - name: Remove kpe-admin sources
+        run: |
+          sudo rm -rf ${GITHUB_WORKSPACE}/kpe-admin
+
+      - name: Clone kpe-streaming
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Build kpe-streaming
+        run: |
+          mkdir build && cd build 
+          cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../
+          make formatcheck
+
+      - name: Workspace cleanup
+        if: always()
+        run: |
+          sudo rm -rf ${GITHUB_WORKSPACE}/build
+
+  codecoverage:
+    name: Code coverage
+    runs-on: [self-hosted, aws, general, X64]
+    container:
+      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.0.0
+      credentials:
+        username: AWS
+        password: ${{ secrets.ECR_PASSWORD }}
+
+    steps:
+      - name: Clone kpe-core
+        uses: actions/checkout@v2
+        with:
+          repository: klepsydra-technologies/kpe-core
+          submodules: recursive
+          ref: main
+          path: kpe-core
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Install kpe-core
+        run: |
+          mkdir build && cd build 
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../
+          make -j$(nproc)
+          sudo make -j$(nproc) install
+        working-directory: kpe-core
+
+      - name: Remove kpe-core sources
+        run: |
+          sudo rm -rf ${GITHUB_WORKSPACE}/kpe-core
+
+      - name: Clone kpe-admin
+        uses: actions/checkout@v2
+        with:
+          repository: klepsydra-technologies/kpe-admin
+          submodules: recursive
+          ref: main
+          path: kpe-admin
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Install kpe-admin
+        run: |
+          mkdir build && cd build 
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DCMAKE_BUILD_TYPE=Debug  -DKPSR_NO_LICENSE=true ../
+          make -j$(nproc)
+          sudo make -j$(nproc) install
+        working-directory: kpe-admin
+
+      - name: Remove kpe-admin sources
+        run: |
+          sudo rm -rf ${GITHUB_WORKSPACE}/kpe-admin
+
+      - name: Clone kpe-streaming
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Build kpe-streaming
+        run: |
+          mkdir build && cd build 
+          cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../
+          make -j$(nproc)
+          make -j$(nproc) coverage
+
+      - uses: codecov/codecov-action@v2
+        with:
+          files: build/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Workspace cleanup
+        if: always()
+        run: |
+          sudo rm -rf ${GITHUB_WORKSPACE}/build

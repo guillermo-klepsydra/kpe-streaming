@@ -21,36 +21,40 @@
 
 #include <klepsydra/streaming/visibility.h>
 
+#include <functional>
 #include <map>
 #include <vector>
-#include <functional>
 
-#include <klepsydra/streaming/streaming_types.h>
 #include <klepsydra/streaming/streaming_configuration.h>
+#include <klepsydra/streaming/streaming_types.h>
 
 namespace kpsr {
 namespace streaming {
 
-class StreamingPolicy {
+class StreamingPolicy
+{
 public:
     StreamingPolicy(int poolSize,
                     size_t numberOfCores,
                     size_t numberOfEventLoops,
                     size_t nonCriticalThreadPoolSize,
                     int numberOfParallelThreads,
-                    const std::vector<std::string> & parallelisedStreams)
-        : _streamingConfiguration(poolSize, numberOfCores, numberOfEventLoops, nonCriticalThreadPoolSize, numberOfParallelThreads, parallelisedStreams)
+                    const std::vector<std::string> &parallelisedStreams)
+        : _streamingConfiguration(poolSize,
+                                  numberOfCores,
+                                  numberOfEventLoops,
+                                  nonCriticalThreadPoolSize,
+                                  numberOfParallelThreads,
+                                  parallelisedStreams)
     {}
 
-    StreamingPolicy(const StreamingConfiguration & streamingConfiguration)
+    StreamingPolicy(const StreamingConfiguration &streamingConfiguration)
         : _streamingConfiguration(streamingConfiguration)
     {}
 
-    virtual size_t addStepToEventLoop(const std::string & stepName) = 0;
+    virtual size_t addStepToEventLoop(const std::string &stepName) = 0;
 
-    StreamingConfiguration & getStreamingConfiguration() {
-        return _streamingConfiguration;
-    }
+    StreamingConfiguration &getStreamingConfiguration() { return _streamingConfiguration; }
 
     virtual ~StreamingPolicy() {}
 
@@ -58,25 +62,29 @@ protected:
     StreamingConfiguration _streamingConfiguration;
 };
 
-class DefaultStreamingPolicy : public StreamingPolicy {
+class DefaultStreamingPolicy : public StreamingPolicy
+{
 public:
-    DefaultStreamingPolicy(size_t numberOfCores, int poolSize, size_t nonCriticalThreadPoolSize,
-                           int numberOfParallelThreads, const std::vector<std::string> & parallelisedStreams);
+    DefaultStreamingPolicy(size_t numberOfCores,
+                           int poolSize,
+                           size_t nonCriticalThreadPoolSize,
+                           int numberOfParallelThreads,
+                           const std::vector<std::string> &parallelisedStreams);
 
-    virtual size_t addStepToEventLoop(const std::string & stepName) override;
+    virtual size_t addStepToEventLoop(const std::string &stepName) override;
 
     std::vector<int> streamEventLoopDistribution;
 };
 
-class JsonStreamingPolicy : public StreamingPolicy {
+class JsonStreamingPolicy : public StreamingPolicy
+{
 public:
-    JsonStreamingPolicy(const std::string& jsonFileName);
-    virtual size_t addStepToEventLoop(const std::string & stepName) override;
-
+    JsonStreamingPolicy(const std::string &jsonFileName);
+    virtual size_t addStepToEventLoop(const std::string &stepName) override;
 };
 
-}
-}
+} // namespace streaming
+} // namespace kpsr
 
 const static std::string STREAMING_CONF_YAML_NODE("streaming_configuration");
 

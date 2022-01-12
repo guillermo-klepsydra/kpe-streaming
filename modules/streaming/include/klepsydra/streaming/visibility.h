@@ -1,8 +1,8 @@
 // Generic helper definitions for shared library support
 #if __GNUC__ >= 4
-#define KPSR_HELPER_DLL_IMPORT __attribute__ ((visibility ("default")))
-#define KPSR_HELPER_DLL_EXPORT __attribute__ ((visibility ("default")))
-#define KPSR_HELPER_DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+#define KPSR_HELPER_DLL_IMPORT __attribute__((visibility("default")))
+#define KPSR_HELPER_DLL_EXPORT __attribute__((visibility("default")))
+#define KPSR_HELPER_DLL_LOCAL __attribute__((visibility("hidden")))
 #else
 #define KPSR_HELPER_DLL_IMPORT
 #define KPSR_HELPER_DLL_EXPORT
@@ -13,7 +13,7 @@
 // KPSR_API is used for the public API symbols. It either DLL imports or DLL exports (or does nothing for static build)
 // KPSR_LOCAL is used for non-api symbols.
 
-#ifdef KPSR_DLL // defined if KPSR is compiled as a DLL
+#ifdef KPSR_DLL         // defined if KPSR is compiled as a DLL
 #ifdef KPSR_DLL_EXPORTS // defined if we are building the KPSR DLL (instead of using it)
 #define KPSR_API KPSR_HELPER_DLL_EXPORT
 #else

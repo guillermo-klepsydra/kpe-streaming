@@ -28,29 +28,37 @@ namespace streaming {
 class EventEmitterPublishSubscribeFactoryChar : public PublishSubscribeFactoryChar
 {
 public:
-    EventEmitterPublishSubscribeFactoryChar(std::shared_ptr<EventEmitterPublishSubscribeFactory> & eventEmitterPublishSubscribeFactory);
+    EventEmitterPublishSubscribeFactoryChar(
+        std::shared_ptr<EventEmitterPublishSubscribeFactory> &eventEmitterPublishSubscribeFactory);
 
     virtual ~EventEmitterPublishSubscribeFactoryChar();
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> * getPublisherChar(const std::string & stepName, const size_t vectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * getSubscriberChar(const std::string & stepName, const size_t vectorSize = 0) override;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> *getPublisherChar(
+        const std::string &stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> *getSubscriberChar(
+        const std::string &stepName, const size_t vectorSize = 0) override;
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * getPublisherUChar(const std::string & stepName, const size_t vectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * getSubscriberUChar(const std::string & stepName, const size_t vectorSize = 0) override;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> *getPublisherUChar(
+        const std::string &stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> *getSubscriberUChar(
+        const std::string &stepName, const size_t vectorSize = 0) override;
 
     void start();
     void stop();
 
 private:
     using EventEmitterChar = kpsr::EventEmitterMiddlewareProvider<DataBatchWithId<std::vector<char>>>;
-    using EventEmitterUChar = kpsr::EventEmitterMiddlewareProvider<DataBatchWithId<std::vector<unsigned char>>>;
+    using EventEmitterUChar =
+        kpsr::EventEmitterMiddlewareProvider<DataBatchWithId<std::vector<unsigned char>>>;
 
-    std::shared_ptr<EventEmitterChar> getEventEmitterChar(const std::string & stepName, const size_t vectorSize);
-    std::shared_ptr<EventEmitterUChar> getEventEmitterUChar(const std::string & stepName, const size_t vectorSize);
+    std::shared_ptr<EventEmitterChar> getEventEmitterChar(const std::string &stepName,
+                                                          const size_t vectorSize);
+    std::shared_ptr<EventEmitterUChar> getEventEmitterUChar(const std::string &stepName,
+                                                            const size_t vectorSize);
 
     std::shared_ptr<EventEmitterPublishSubscribeFactory> _eventEmitterPublishSubscribeFactory;
 };
-}
-}
+} // namespace streaming
+} // namespace kpsr
 
 #endif // EVENT_EMITTER_PUBLISH_SUBSCRIBE_FACTORY_H

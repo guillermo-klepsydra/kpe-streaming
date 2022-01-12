@@ -19,9 +19,9 @@
 #ifndef STREAMING_TYPES_H
 #define STREAMING_TYPES_H
 
+#include <klepsydra/streaming/aligned_allocator.h>
 #include <string>
 #include <vector>
-#include <klepsydra/streaming/aligned_allocator.h>
 
 namespace kpsr {
 namespace streaming {
@@ -32,6 +32,6 @@ using UI16AlignedVector = std::vector<uint16_t, AlignedAllocator<uint16_t, 16>>;
 using I8AlignedVector = std::vector<int8_t, AlignedAllocator<int8_t, 16>>;
 using UI8AlignedVector = std::vector<uint8_t, AlignedAllocator<uint8_t, 16>>;
 
-}
-}
+} // namespace streaming
+} // namespace kpsr
 #endif

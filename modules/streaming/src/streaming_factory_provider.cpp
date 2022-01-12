@@ -21,11 +21,11 @@
 
 #include <klepsydra/streaming/streaming_factory_provider.h>
 
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory.h>
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
-#include <klepsydra/streaming/event_emitter_publish_subscribe_factory_float32.h>
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory_char.h>
 #include <klepsydra/streaming/event_emitter_publish_subscribe_factory_char.h>
+#include <klepsydra/streaming/event_emitter_publish_subscribe_factory_float32.h>
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory.h>
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory_char.h>
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
 
 #include <klepsydra/admin/check_license.h>
 
@@ -41,24 +41,38 @@ StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN, bool useChar, b
     , _eventLoopFactoryChar(nullptr)
 {
     std::vector<std::string> parallisedLayers = {};
-    _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(std::thread::hardware_concurrency(), 4, 4, 1, parallisedLayers);
+    _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(std::thread::hardware_concurrency(),
+                                                                4,
+                                                                4,
+                                                                1,
+                                                                parallisedLayers);
     if (testDNN) {
-        auto eventEmitterPublishSubscribeFactory = std::make_shared<EventEmitterPublishSubscribeFactory>(_container, 10);
+        auto eventEmitterPublishSubscribeFactory =
+            std::make_shared<EventEmitterPublishSubscribeFactory>(_container, 10);
         setDefaultLogger();
         if (useChar) {
-            _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(eventEmitterPublishSubscribeFactory);
-            _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(eventEmitterPublishSubscribeFactory);
+            _eventLoopFactoryChar =
+                std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(
+                    eventEmitterPublishSubscribeFactory);
+            _dataMultiplexerFactoryChar =
+                std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(
+                    eventEmitterPublishSubscribeFactory);
         }
         if (useFloat) {
-            _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(eventEmitterPublishSubscribeFactory);
-            _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(eventEmitterPublishSubscribeFactory);
+            _eventLoopFactoryFloat32 =
+                std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(
+                    eventEmitterPublishSubscribeFactory);
+            _dataMultiplexerFactoryFloat32 =
+                std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(
+                    eventEmitterPublishSubscribeFactory);
         }
     } else {
         createFactories(useChar, useFloat);
     }
 }
 
-StreamingFactoryProvider::StreamingFactoryProvider(const std::string & envFileName, kpsr::Container * container)
+StreamingFactoryProvider::StreamingFactoryProvider(const std::string &envFileName,
+                                                   kpsr::Container *container)
     : _container(container)
     , _eventLoopFactoryFloat32(nullptr)
     , _eventLoopFactoryChar(nullptr)
@@ -66,54 +80,64 @@ StreamingFactoryProvider::StreamingFactoryProvider(const std::string & envFileNa
     kpsr::ConfigurationEnvironment environment(envFileName);
 
     if (!_container) {
-        _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(&environment);
+        _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(
+            &environment);
     }
     initForEnvironment(&environment);
 }
 
-
-StreamingFactoryProvider::StreamingFactoryProvider(kpsr::Environment * environment, kpsr::Container * container)
+StreamingFactoryProvider::StreamingFactoryProvider(kpsr::Environment *environment,
+                                                   kpsr::Container *container)
     : _container(container)
     , _eventLoopFactoryFloat32(nullptr)
     , _eventLoopFactoryChar(nullptr)
 {
     if (!_container) {
-        _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(environment);
+        _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(
+            environment);
     }
     initForEnvironment(environment);
 }
 
-void StreamingFactoryProvider::setDefaultLogger(const std::string& logFileName, int logLevel){
+void StreamingFactoryProvider::setDefaultLogger(const std::string &logFileName, int logLevel)
+{
     if (spdlog::get("klepsydra")) {
         //noop
     } else {
         if (!logFileName.empty()) {
-            auto  kpsrLogger = spdlog::basic_logger_mt("klepsydra", logFileName);
+            auto kpsrLogger = spdlog::basic_logger_mt("klepsydra", logFileName);
             spdlog::set_default_logger(kpsrLogger);
         } else {
-            auto  kpsrLogger = spdlog::stderr_color_mt("klepsydra");
+            auto kpsrLogger = spdlog::stderr_color_mt("klepsydra");
             spdlog::set_default_logger(kpsrLogger);
         }
         spdlog::set_pattern("[%c] [%H:%M:%S %f] [%n] [%l] [%t] %v");
         spdlog::set_level(static_cast<spdlog::level::level_enum>(logLevel));
-
     }
 }
 
-void StreamingFactoryProvider::createFactories(bool useChar, bool useFloat) {
+void StreamingFactoryProvider::createFactories(bool useChar, bool useFloat)
+{
     check_license();
-    auto eventLoopPublishSubscribeFactory = std::make_shared<EventLoopPublishSubscribeFactory>(_container, _streamingPolicy.get());
+    auto eventLoopPublishSubscribeFactory =
+        std::make_shared<EventLoopPublishSubscribeFactory>(_container, _streamingPolicy.get());
     if (useChar) {
-        _eventLoopFactoryChar = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(eventLoopPublishSubscribeFactory);
-        _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(_container);
+        _eventLoopFactoryChar =
+            std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(
+                eventLoopPublishSubscribeFactory);
+        _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(
+            _container);
     }
     if (useFloat) {
-        _eventLoopFactoryFloat32 = std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(eventLoopPublishSubscribeFactory);
-        _dataMultiplexerFactoryFloat32 = std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32>(_container);
+        _eventLoopFactoryFloat32 =
+            std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(
+                eventLoopPublishSubscribeFactory);
+        _dataMultiplexerFactoryFloat32 =
+            std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32>(_container);
     }
 }
 
-void StreamingFactoryProvider::initForEnvironment(kpsr::Environment * environment)
+void StreamingFactoryProvider::initForEnvironment(kpsr::Environment *environment)
 {
     std::string logFileName("");
     int logLevel(1);
@@ -133,7 +157,8 @@ void StreamingFactoryProvider::initForEnvironment(kpsr::Environment * environmen
     } else {
         std::string streamingConfigurationFile;
         environment->getPropertyString("streaming_conf_file", streamingConfigurationFile);
-        _streamingPolicy = std::make_unique<kpsr::streaming::JsonStreamingPolicy>(streamingConfigurationFile);
+        _streamingPolicy = std::make_unique<kpsr::streaming::JsonStreamingPolicy>(
+            streamingConfigurationFile);
     }
 
     bool useChar = false;
@@ -141,10 +166,10 @@ void StreamingFactoryProvider::initForEnvironment(kpsr::Environment * environmen
     bool useFloat = true;
     environment->getPropertyBool("use_float_data", useFloat);
     createFactories(useChar, useFloat);
-
 }
 
-void StreamingFactoryProvider::setDefaultStreaming(kpsr::Environment * environment) {
+void StreamingFactoryProvider::setDefaultStreaming(kpsr::Environment *environment)
+{
     int poolSize;
     int numberOfCores;
     int nonCriticalThreadPoolSize;
@@ -154,37 +179,52 @@ void StreamingFactoryProvider::setDefaultStreaming(kpsr::Environment * environme
     environment->getPropertyInt("number_of_cores", numberOfCores);
     spdlog::debug("StreamingFactoryProvider::initForEnvironment. numberOfCores: {}", numberOfCores);
     environment->getPropertyInt("non_critical_thread_pool_size", nonCriticalThreadPoolSize);
-    spdlog::debug("StreamingFactoryProvider::initForEnvironment. nonCriticalThreadPoolSize: {}", nonCriticalThreadPoolSize);
+    spdlog::debug("StreamingFactoryProvider::initForEnvironment. nonCriticalThreadPoolSize: {}",
+                  nonCriticalThreadPoolSize);
     environment->getPropertyInt("number_of_parallel_threads", numberOfParallelThreads);
-    spdlog::debug("StreamingFactoryProvider::initForEnvironment. numberOfParallelThreads: {}", numberOfParallelThreads);
+    spdlog::debug("StreamingFactoryProvider::initForEnvironment. numberOfParallelThreads: {}",
+                  numberOfParallelThreads);
     std::vector<std::string> parallisedLayers = {};
-    _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(numberOfCores, poolSize, nonCriticalThreadPoolSize,
-                                                                numberOfParallelThreads, parallisedLayers);
-}        
+    _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(numberOfCores,
+                                                                poolSize,
+                                                                nonCriticalThreadPoolSize,
+                                                                numberOfParallelThreads,
+                                                                parallisedLayers);
+}
 
 StreamingFactoryProvider::~StreamingFactoryProvider() {}
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> & StreamingFactoryProvider::getEventLoopFactoryFloat32() {
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32>
+    &StreamingFactoryProvider::getEventLoopFactoryFloat32()
+{
     return _eventLoopFactoryFloat32;
 }
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> & StreamingFactoryProvider::getDataMultiplexerFactoryFloat32() {
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32>
+    &StreamingFactoryProvider::getDataMultiplexerFactoryFloat32()
+{
     return _dataMultiplexerFactoryFloat32;
 }
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> & StreamingFactoryProvider::getEventLoopFactoryChar() {
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar>
+    &StreamingFactoryProvider::getEventLoopFactoryChar()
+{
     return _eventLoopFactoryChar;
 }
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> & StreamingFactoryProvider::getDataMultiplexerFactoryChar() {
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar>
+    &StreamingFactoryProvider::getDataMultiplexerFactoryChar()
+{
     return _dataMultiplexerFactoryChar;
 }
 
-StreamingPolicy * StreamingFactoryProvider::getStreamingPolicy() {
+StreamingPolicy *StreamingFactoryProvider::getStreamingPolicy()
+{
     return _streamingPolicy.get();
 }
 
-void StreamingFactoryProvider::start() {
+void StreamingFactoryProvider::start()
+{
     check_license();
     if (_eventLoopFactoryFloat32) {
         _eventLoopFactoryFloat32->startup();
@@ -194,7 +234,8 @@ void StreamingFactoryProvider::start() {
     }
 }
 
-void StreamingFactoryProvider::stop() {
+void StreamingFactoryProvider::stop()
+{
     if (_eventLoopFactoryFloat32) {
         _eventLoopFactoryFloat32->shutdown();
     }

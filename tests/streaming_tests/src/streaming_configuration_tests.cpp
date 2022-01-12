@@ -22,60 +22,61 @@
 #include <klepsydra/streaming/streaming_configuration.h>
 #include <spdlog/spdlog.h>
 
-TEST(StreamingConfiguration, DefaultConstructionTest) {
+TEST(StreamingConfiguration, DefaultConstructionTest)
+{
     ASSERT_NO_THROW(kpsr::streaming::StreamingConfiguration dummyConfig);
 }
 
-TEST(StreamingConfiguration, ConstructionTest) {
+TEST(StreamingConfiguration, ConstructionTest)
+{
     int poolSize = 0;
     int numberOfCores = 2;
     int nonCriticalThreadPoolSize = 4;
     int numberOfParallelThreads = 2;
     std::vector<std::string> parallisedSteps = {};
 
-    ASSERT_NO_THROW(kpsr::streaming::StreamingConfiguration dummyConfig(
-        poolSize,
-        numberOfCores,
-        numberOfCores * 1,
-        nonCriticalThreadPoolSize,
-        numberOfParallelThreads,
-        parallisedSteps));
+    ASSERT_NO_THROW(kpsr::streaming::StreamingConfiguration dummyConfig(poolSize,
+                                                                        numberOfCores,
+                                                                        numberOfCores * 1,
+                                                                        nonCriticalThreadPoolSize,
+                                                                        numberOfParallelThreads,
+                                                                        parallisedSteps));
 }
 
-TEST(StreamingConfiguration, JsonExportTest) {
+TEST(StreamingConfiguration, JsonExportTest)
+{
     int poolSize = 0;
     int numberOfCores = 2;
     int nonCriticalThreadPoolSize = 4;
     int numberOfParallelThreads = 2;
     std::vector<std::string> parallisedSteps = {};
 
-    kpsr::streaming::StreamingConfiguration dummyConfig(
-        poolSize,
-        numberOfCores,
-        numberOfCores * 1,
-        nonCriticalThreadPoolSize,
-        numberOfParallelThreads,
-        parallisedSteps);
+    kpsr::streaming::StreamingConfiguration dummyConfig(poolSize,
+                                                        numberOfCores,
+                                                        numberOfCores * 1,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedSteps);
 
     std::string jsonExport;
     ASSERT_NO_THROW(jsonExport = dummyConfig.exportJsonString());
     ASSERT_FALSE(jsonExport.empty());
 }
 
-TEST(StreamingConfiguration, JsonExportLoadTest) {
+TEST(StreamingConfiguration, JsonExportLoadTest)
+{
     int poolSize = 0;
     int numberOfCores = 2;
     int nonCriticalThreadPoolSize = 4;
     int numberOfParallelThreads = 2;
     std::vector<std::string> parallisedSteps = {};
 
-    kpsr::streaming::StreamingConfiguration dummyConfig(
-        poolSize,
-        numberOfCores,
-        numberOfCores * 1,
-        nonCriticalThreadPoolSize,
-        numberOfParallelThreads,
-        parallisedSteps);
+    kpsr::streaming::StreamingConfiguration dummyConfig(poolSize,
+                                                        numberOfCores,
+                                                        numberOfCores * 1,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedSteps);
 
     std::string jsonExport;
     ASSERT_NO_THROW(jsonExport = dummyConfig.exportJsonString());
@@ -86,27 +87,27 @@ TEST(StreamingConfiguration, JsonExportLoadTest) {
     ASSERT_EQ(copyConfig, dummyConfig);
 }
 
-TEST(StreamingConfiguration, JsonExportLoadTestWithMaps) {
+TEST(StreamingConfiguration, JsonExportLoadTestWithMaps)
+{
     int poolSize = 0;
     int numberOfCores = 2;
     int nonCriticalThreadPoolSize = 4;
     int numberOfParallelThreads = 2;
     std::vector<std::string> parallisedSteps = {};
 
-    kpsr::streaming::StreamingConfiguration dummyConfig(
-        poolSize,
-        numberOfCores,
-        numberOfCores * 1,
-        nonCriticalThreadPoolSize,
-        numberOfParallelThreads,
-        parallisedSteps);
+    kpsr::streaming::StreamingConfiguration dummyConfig(poolSize,
+                                                        numberOfCores,
+                                                        numberOfCores * 1,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedSteps);
 
     dummyConfig.eventLoopCoreMap[0] = std::vector<int>{0, 1};
     dummyConfig.eventLoopCoreMap[1] = std::vector<int>{2};
 
     dummyConfig.stepIDEventLoopMap["test1"] = 0;
     dummyConfig.stepIDEventLoopMap["test2"] = 1;
-    
+
     std::string jsonExport;
     ASSERT_NO_THROW(jsonExport = dummyConfig.exportJsonString());
     ASSERT_FALSE(jsonExport.empty());

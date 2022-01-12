@@ -21,32 +21,32 @@
 namespace kpsr {
 namespace streaming {
 
-EventEmitterPublishSubscribeFactory::EventEmitterPublishSubscribeFactory(kpsr::Container * container, int poolSize)
+EventEmitterPublishSubscribeFactory::EventEmitterPublishSubscribeFactory(kpsr::Container *container,
+                                                                         int poolSize)
     : _container(container)
     , _eventEmitterFactory()
     , _poolSize(poolSize)
-{
-}
+{}
 
 EventEmitterPublishSubscribeFactory::~EventEmitterPublishSubscribeFactory()
 {
     _container = nullptr;
 }
 
-kpsr::Container* EventEmitterPublishSubscribeFactory::getContainer()
+kpsr::Container *EventEmitterPublishSubscribeFactory::getContainer()
 {
     return _container;
 }
 
-EventEmitterFactory& EventEmitterPublishSubscribeFactory::getEventEmitterFactory()
+EventEmitterFactory &EventEmitterPublishSubscribeFactory::getEventEmitterFactory()
 {
     return _eventEmitterFactory;
 }
 
-int& EventEmitterPublishSubscribeFactory::getPoolSize()
+int &EventEmitterPublishSubscribeFactory::getPoolSize()
 {
     return _poolSize;
 }
 
-}
-}
+} // namespace streaming
+} // namespace kpsr

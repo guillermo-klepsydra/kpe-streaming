@@ -18,10 +18,10 @@
 
 #pragma once
 
+#include <cassert>
 #include <stdlib.h>
 #include <string>
 #include <utility>
-#include <cassert>
 
 #ifdef _WIN32
 #include <malloc.h>
@@ -34,8 +34,9 @@
 namespace kpsr {
 namespace streaming {
 
-template <typename T, std::size_t alignment>
-class AlignedAllocator {
+template<typename T, std::size_t alignment>
+class AlignedAllocator
+{
 public:
     typedef T value_type;
     typedef T *pointer;
@@ -45,66 +46,70 @@ public:
     typedef const T &const_reference;
     typedef const T *const_pointer;
 
-    template <typename U>
-    struct rebind {
+    template<typename U>
+    struct rebind
+    {
         typedef AlignedAllocator<U, alignment> other;
     };
 
     AlignedAllocator() {}
 
-    template <typename U>
-    AlignedAllocator(const AlignedAllocator<U, alignment> &) {}
+    template<typename U>
+    AlignedAllocator(const AlignedAllocator<U, alignment> &)
+    {}
 
-    const_pointer address(const_reference value) const {
-        return std::addressof(value);
-    }
+    const_pointer address(const_reference value) const { return std::addressof(value); }
 
     pointer address(reference value) const { return std::addressof(value); }
 
-    pointer allocate(size_type size, const void * = nullptr) {
+    pointer allocate(size_type size, const void * = nullptr)
+    {
         void *p = aligned_alloc(alignment, sizeof(T) * size);
         assert((p != 0) && (size > 0));
         return static_cast<pointer>(p);
     }
 
-    size_type max_size() const {
-        return ~static_cast<std::size_t>(0) / sizeof(T);
-    }
+    size_type max_size() const { return ~static_cast<std::size_t>(0) / sizeof(T); }
 
     void deallocate(pointer ptr, size_type) { aligned_free(ptr); }
 
-    template <class U, class V>
-    void construct(U *ptr, const V &value) {
+    template<class U, class V>
+    void construct(U *ptr, const V &value)
+    {
         void *p = ptr;
         ::new (p) U(value);
     }
 
-    template <class U, class... Args>
-    void construct(U *ptr, Args &&... args) {
+    template<class U, class... Args>
+    void construct(U *ptr, Args &&...args)
+    {
         void *p = ptr;
         ::new (p) U(std::forward<Args>(args)...);
     }
 
-    template <class U>
-    void construct(U *ptr) {
+    template<class U>
+    void construct(U *ptr)
+    {
         void *p = ptr;
         ::new (p) U();
     }
 
-    template <class U>
-    void destroy(U *ptr) {
+    template<class U>
+    void destroy(U *ptr)
+    {
         ptr->~U();
     }
 
 private:
-    void *aligned_alloc(size_type align, size_type size) const {
+    void *aligned_alloc(size_type align, size_type size) const
+    {
 #if defined(_MSC_VER)
         return ::_aligned_malloc(size, align);
 #elif defined(__ANDROID__)
         return ::memalign(align, size);
 #elif defined(__MINGW32__)
         return ::_mm_malloc(size, align);
-#else  // posix assumed
+#else // posix assumed
         void *p;
         if (::posix_memalign(&p, align, size) != 0) {
             p = 0;
@@ -113,7 +118,8 @@ private:
 #endif
     }
 
-    void aligned_free(pointer ptr) {
+    void aligned_free(pointer ptr)
+    {
 #if defined(_MSC_VER)
         ::_aligned_free(ptr);
 #elif defined(__MINGW32__)
@@ -124,17 +130,19 @@ private:
     }
 };
 
-template <typename T1, typename T2, std::size_t alignment>
+template<typename T1, typename T2, std::size_t alignment>
 inline bool operator==(const AlignedAllocator<T1, alignment> &,
-                       const AlignedAllocator<T2, alignment> &) {
+                       const AlignedAllocator<T2, alignment> &)
+{
     return true;
 }
 
-template <typename T1, typename T2, std::size_t alignment>
+template<typename T1, typename T2, std::size_t alignment>
 inline bool operator!=(const AlignedAllocator<T1, alignment> &,
-                       const AlignedAllocator<T2, alignment> &) {
+                       const AlignedAllocator<T2, alignment> &)
+{
     return false;
 }
 
-}  // namespace streaming
-}  // namespace kpsr
+} // namespace streaming
+} // namespace kpsr

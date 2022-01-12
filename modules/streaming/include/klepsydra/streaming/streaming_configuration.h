@@ -19,12 +19,12 @@
 #ifndef STREAMING_CONFIGURATION_H
 #define STREAMING_CONFIGURATION_H
 
-#include <klepsydra/streaming/visibility.h>
 #include <klepsydra/streaming/streaming_types.h>
+#include <klepsydra/streaming/visibility.h>
 
 #include <map>
-#include <vector>
 #include <sstream>
+#include <vector>
 
 namespace kpsr {
 namespace streaming {
@@ -36,20 +36,19 @@ const std::string NUMBER_OF_PARALLEL_THREADS = "number_of_parallel_threads";
 const std::string EVENT_LOOP_CORE_MAP = "event_loop_core_map";
 const std::string LAYER_EVENT_LOOP_MAP = "layer_event_loop_map";
 const std::string PARALLISED_LAYERS = "parallised_layers";
-    
-    
-class StreamingConfiguration {
-public:
 
+class StreamingConfiguration
+{
+public:
     StreamingConfiguration();
     StreamingConfiguration(int poolSize,
                            size_t numberOfCores,
                            size_t numberOfEventLoops,
                            size_t nonCriticalThreadPoolSize,
                            int numberOfParallelThreads,
-                           const std::vector<std::string> & parallelisedSteps);
+                           const std::vector<std::string> &parallelisedSteps);
 
-    StreamingConfiguration(const std::string& jsonFileName);
+    StreamingConfiguration(const std::string &jsonFileName);
 
     int poolSize;
     size_t numberOfCores;
@@ -60,17 +59,18 @@ public:
     std::map<std::string, size_t> stepIDEventLoopMap;
     std::vector<std::string> parallelisedSteps;
 
-    bool operator==(const StreamingConfiguration & rhs) const;
+    bool operator==(const StreamingConfiguration &rhs) const;
 
-    void loadJsonString(const std::string& jsonString);
+    void loadJsonString(const std::string &jsonString);
     std::string exportJsonString();
-private:
-    void loadJsonStream(std::istream& jsonStream);
 
-    template <class Archive>
-    void serialize(Archive& archive);
+private:
+    void loadJsonStream(std::istream &jsonStream);
+
+    template<class Archive>
+    void serialize(Archive &archive);
 };
-}
-}
+} // namespace streaming
+} // namespace kpsr
 
 #endif // STREAMING_CONFIGURATION_H

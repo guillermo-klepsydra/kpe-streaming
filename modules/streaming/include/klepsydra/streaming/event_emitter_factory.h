@@ -31,28 +31,35 @@ namespace streaming {
 class EventEmitterFactory
 {
 public:
-    EventEmitterFactory()
-        {}
+    EventEmitterFactory() {}
 
     ~EventEmitterFactory() {}
 
-    template <class T>
-    std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> getEventEmitter(const std::string& stepName) {
+    template<class T>
+    std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> getEventEmitter(
+        const std::string &stepName)
+    {
         auto stepIt = _eventemitterMap.find(stepName);
         if (stepIt == _eventemitterMap.end()) {
             return nullptr;
         } else {
             auto internalPtr = stepIt->second;
-            auto emitterToReturn = std::static_pointer_cast<kpsr::EventEmitterMiddlewareProvider<T>>(internalPtr);
+            auto emitterToReturn = std::static_pointer_cast<kpsr::EventEmitterMiddlewareProvider<T>>(
+                internalPtr);
             return emitterToReturn;
         }
     }
 
-    template <class T>
-    std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> insertEmitter(const std::string& stepName,
-                                                                           std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> emitter) {
-        spdlog::debug("EventEmitterPublishSubscribeFactory::getEventEmitter: new instance, stepName: {}", stepName);
-        auto insertResult = _eventemitterMap.insert(std::make_pair(stepName, std::static_pointer_cast<void>(emitter)));
+    template<class T>
+    std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> insertEmitter(
+        const std::string &stepName,
+        std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> emitter)
+    {
+        spdlog::debug(
+            "EventEmitterPublishSubscribeFactory::getEventEmitter: new instance, stepName: {}",
+            stepName);
+        auto insertResult = _eventemitterMap.insert(
+            std::make_pair(stepName, std::static_pointer_cast<void>(emitter)));
         if (!insertResult.second) {
             throw std::runtime_error("Could not save the event emitter");
         }
@@ -60,9 +67,8 @@ public:
     }
 
 private:
-    std::map<std::string, std::shared_ptr<void> > _eventemitterMap;
-
+    std::map<std::string, std::shared_ptr<void>> _eventemitterMap;
 };
-}
-}
+} // namespace streaming
+} // namespace kpsr
 #endif

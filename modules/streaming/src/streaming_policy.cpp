@@ -22,22 +22,32 @@
 static const size_t CORE_RATIO = 1;
 static const int NON_INTENSIVE_STREAM_RATIO = 1;
 
-kpsr::streaming::DefaultStreamingPolicy::DefaultStreamingPolicy(size_t numberOfCores,
-                                                                int poolSize,
-                                                                size_t nonCriticalThreadPoolSize,
-                                                                int numberOfParallelThreads,
-                                                                const std::vector<std::string> & parallelisedSteps)
-    : StreamingPolicy(poolSize, numberOfCores, numberOfCores * CORE_RATIO, nonCriticalThreadPoolSize, numberOfParallelThreads, parallelisedSteps)
+kpsr::streaming::DefaultStreamingPolicy::DefaultStreamingPolicy(
+    size_t numberOfCores,
+    int poolSize,
+    size_t nonCriticalThreadPoolSize,
+    int numberOfParallelThreads,
+    const std::vector<std::string> &parallelisedSteps)
+    : StreamingPolicy(poolSize,
+                      numberOfCores,
+                      numberOfCores * CORE_RATIO,
+                      nonCriticalThreadPoolSize,
+                      numberOfParallelThreads,
+                      parallelisedSteps)
     , streamEventLoopDistribution(_streamingConfiguration.numberOfEventLoops)
 {
-    for(size_t i = 0; i < _streamingConfiguration.numberOfEventLoops; i++) {
+    for (size_t i = 0; i < _streamingConfiguration.numberOfEventLoops; i++) {
         std::vector<int> cores{static_cast<int>(i % numberOfCores)};
         _streamingConfiguration.eventLoopCoreMap[i] = cores;
-        spdlog::debug("DefaultStreamingPolicy::DefaultStreamingPolicy. EventLoop {}, goes to core {}", i, cores[0]);
+        spdlog::debug(
+            "DefaultStreamingPolicy::DefaultStreamingPolicy. EventLoop {}, goes to core {}",
+            i,
+            cores[0]);
     }
 }
 
-size_t kpsr::streaming::DefaultStreamingPolicy::addStepToEventLoop(const std::string & stepName) {
+size_t kpsr::streaming::DefaultStreamingPolicy::addStepToEventLoop(const std::string &stepName)
+{
     auto index = _streamingConfiguration.stepIDEventLoopMap.find(stepName);
     if (index == _streamingConfiguration.stepIDEventLoopMap.end()) {
         size_t minIndex = 0;
@@ -58,6 +68,7 @@ kpsr::streaming::JsonStreamingPolicy::JsonStreamingPolicy(const std::string &jso
     : StreamingPolicy(StreamingConfiguration(jsonFileName))
 {}
 
-size_t kpsr::streaming::JsonStreamingPolicy::addStepToEventLoop(const std::string & stepName) {
+size_t kpsr::streaming::JsonStreamingPolicy::addStepToEventLoop(const std::string &stepName)
+{
     return _streamingConfiguration.stepIDEventLoopMap[stepName];
 }

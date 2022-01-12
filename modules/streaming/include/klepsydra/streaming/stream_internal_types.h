@@ -27,41 +27,42 @@ namespace streaming {
 
 using UIDType = unsigned long;
 
-class UUID {
-public :
+class UUID
+{
+public:
     UUID()
-        : uid(0) {}
-    UIDType getUid() {
-        return uid++;
-    }
+        : uid(0)
+    {}
+    UIDType getUid() { return uid++; }
 
 private:
     std::atomic<UIDType> uid;
 };
 
-
 template<class T>
-class DataBatchWithId {
+class DataBatchWithId
+{
 public:
     DataBatchWithId()
         : id(0)
-        , data(std::make_shared<T>(0)) {}
+        , data(std::make_shared<T>(0))
+    {}
 
-    DataBatchWithId(unsigned long id,
-                    T & data)
+    DataBatchWithId(unsigned long id, T &data)
         : id(id)
-        , data(data) {}
+        , data(data)
+    {}
 
-    DataBatchWithId(unsigned long id,
-                    std::shared_ptr<T> & data)
+    DataBatchWithId(unsigned long id, std::shared_ptr<T> &data)
         : id(id)
-        , data(data) {}
+        , data(data)
+    {}
 
     unsigned long id;
     std::shared_ptr<T> data;
 };
 
-}
-}
+} // namespace streaming
+} // namespace kpsr
 
 #endif // STREAMING_INTERNAL_TYPES_H

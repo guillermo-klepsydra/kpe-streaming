@@ -31,22 +31,27 @@ namespace streaming {
 class EventLoopPublishSubscribeFactoryChar : public PublishSubscribeFactoryChar
 {
 public:
-    EventLoopPublishSubscribeFactoryChar(std::shared_ptr<EventLoopPublishSubscribeFactory> & eventLoopPublishSubscribeFactory);
+    EventLoopPublishSubscribeFactoryChar(
+        std::shared_ptr<EventLoopPublishSubscribeFactory> &eventLoopPublishSubscribeFactory);
 
     virtual ~EventLoopPublishSubscribeFactoryChar();
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> * getPublisherChar(const std::string & stepName, const size_t vectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * getSubscriberChar(const std::string & stepName, const size_t vectorSize = 0) override;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> *getPublisherChar(
+        const std::string &stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> *getSubscriberChar(
+        const std::string &stepName, const size_t vectorSize = 0) override;
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * getPublisherUChar(const std::string & stepName, const size_t vectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * getSubscriberUChar(const std::string & stepName, const size_t vectorSize = 0) override;
-    
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> *getPublisherUChar(
+        const std::string &stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> *getSubscriberUChar(
+        const std::string &stepName, const size_t vectorSize = 0) override;
+
     void start();
     void stop();
 
 private:
     std::shared_ptr<EventLoopPublishSubscribeFactory> _eventLoopPublishSubscribeFactory;
 };
-}
-}
+} // namespace streaming
+} // namespace kpsr
 #endif // PUBLISH_SUBCRIBE_EVENTLOOP_FACTORY_CHAR_H

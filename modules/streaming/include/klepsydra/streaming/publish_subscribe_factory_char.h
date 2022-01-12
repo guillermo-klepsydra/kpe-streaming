@@ -20,28 +20,32 @@
 #define PUBLISH_SUBSCRIBE_FACTORY_CHAR_H
 
 #include <klepsydra/core/publisher.h>
-#include <klepsydra/core/subscriber.h>
 #include <klepsydra/core/service.h>
+#include <klepsydra/core/subscriber.h>
 #include <klepsydra/streaming/stream_internal_types.h>
 #include <klepsydra/streaming/streaming_types.h>
 
 namespace kpsr {
 namespace streaming {
 
-class PublishSubscribeFactoryChar: virtual public kpsr::Service
+class PublishSubscribeFactoryChar : virtual public kpsr::Service
 {
 public:
-    
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> * getPublisherChar(const std::string & stepName, const size_t vectorSize) = 0;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * getSubscriberChar(const std::string & stepName, const size_t vectorSize = 0) = 0;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> *getPublisherChar(
+        const std::string &stepName, const size_t vectorSize) = 0;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> *getSubscriberChar(
+        const std::string &stepName, const size_t vectorSize = 0) = 0;
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * getPublisherUChar(const std::string & stepName, const size_t vectorSize) = 0;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * getSubscriberUChar(const std::string & stepName, const size_t vectorSize = 0) = 0;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> *getPublisherUChar(
+        const std::string &stepName, const size_t vectorSize) = 0;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> *getSubscriberUChar(
+        const std::string &stepName, const size_t vectorSize = 0) = 0;
+
 protected:
-    virtual void execute() override {};
+    virtual void execute() override{};
 };
 
-} //streaming
-} //kpsr
+} // namespace streaming
+} // namespace kpsr
 
 #endif // PUBLISH_SUBSCRIBE_FACTORY_CHAR_H

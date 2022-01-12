@@ -16,16 +16,17 @@
 *
 *****************************************************************************/
 #ifndef STREAMING_TEST_FIXTURE_H
-#define STREAMING_TEST_FIXTURE_H 
+#define STREAMING_TEST_FIXTURE_H
 #include <klepsydra/streaming/streaming_factory_provider.h>
 
 #include "gtest/gtest.h"
 
-class StreamingFactoryProviderDefault : public testing::TestWithParam<bool> {
+class StreamingFactoryProviderDefault : public testing::TestWithParam<bool>
+{
 protected:
     StreamingFactoryProviderDefault()
         : sut(GetParam(), false, true)
-        {}
+    {}
     // @TODO: Add tests for the case of useChar = true.
     kpsr::streaming::StreamingFactoryProvider sut;
 };

@@ -31,27 +31,37 @@ namespace streaming {
 class EventLoopPublishSubscribeFactoryFloat32 : public PublishSubscribeFactoryFloat32
 {
 public:
-    EventLoopPublishSubscribeFactoryFloat32(std::shared_ptr<EventLoopPublishSubscribeFactory> & eventLoopPublishSubscribeFactory);
+    EventLoopPublishSubscribeFactoryFloat32(
+        std::shared_ptr<EventLoopPublishSubscribeFactory> &eventLoopPublishSubscribeFactory);
 
     virtual ~EventLoopPublishSubscribeFactoryFloat32();
 
-    virtual kpsr::Publisher<DataBatchWithId<F32AlignedVector>> * getPublisherF32Aligned(const std::string & stepName, const size_t vectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<F32AlignedVector>> * getSubscriberF32Aligned(const std::string & stepName, const size_t vectorSize) override;
+    virtual kpsr::Publisher<DataBatchWithId<F32AlignedVector>> *getPublisherF32Aligned(
+        const std::string &stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<F32AlignedVector>> *getSubscriberF32Aligned(
+        const std::string &stepName, const size_t vectorSize) override;
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<F32AlignedVector>>> * getPublisherMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<F32AlignedVector>>> * getSubscriberMultiF32Aligned(const std::string & stepName, const size_t vectorSize, const size_t multiVectorSize) override;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<F32AlignedVector>>>
+        *getPublisherMultiF32Aligned(const std::string &stepName,
+                                     const size_t vectorSize,
+                                     const size_t multiVectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<F32AlignedVector>>>
+        *getSubscriberMultiF32Aligned(const std::string &stepName,
+                                      const size_t vectorSize,
+                                      const size_t multiVectorSize) override;
 
-    virtual kpsr::Publisher<DataBatchWithId <std::vector<float>>> * getPublisherF32(const std::string & stepName, const size_t vectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<float>>> * getSubscriberF32(const std::string & stepName, const size_t vectorSize) override;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<float>>> *getPublisherF32(
+        const std::string &stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<float>>> *getSubscriberF32(
+        const std::string &stepName, const size_t vectorSize) override;
 
     void start();
     void stop();
-    
-private:   
-    std::shared_ptr<EventLoopPublishSubscribeFactory> _eventLoopPublishSubscribeFactory;
 
+private:
+    std::shared_ptr<EventLoopPublishSubscribeFactory> _eventLoopPublishSubscribeFactory;
 };
-}
-}
+} // namespace streaming
+} // namespace kpsr
 
 #endif // PUBLISH_SUBCRIBE_EVENTLOOP_FACTORY_FLOAT32_H

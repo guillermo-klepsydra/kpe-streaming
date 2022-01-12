@@ -16,7 +16,6 @@
 *
 *****************************************************************************/
 
-
 #ifndef DATA_MULTIPLEXER_FACTORY_PROVIDER_H
 #define DATA_MULTIPLEXER_FACTORY_PROVIDER_H
 
@@ -28,47 +27,52 @@
 namespace kpsr {
 namespace streaming {
 
-    template <class T, int BUFFER_SIZE>
-    using DataMultiplexerProvider = kpsr::high_performance::DataMultiplexerMiddlewareProvider<T, BUFFER_SIZE>;
+template<class T, int BUFFER_SIZE>
+using DataMultiplexerProvider =
+    kpsr::high_performance::DataMultiplexerMiddlewareProvider<T, BUFFER_SIZE>;
 
-    template <class T, int BUFFER_SIZE>
-    using DataMultiplexerProviderPtr = std::shared_ptr<DataMultiplexerProvider<T, BUFFER_SIZE>>;
+template<class T, int BUFFER_SIZE>
+using DataMultiplexerProviderPtr = std::shared_ptr<DataMultiplexerProvider<T, BUFFER_SIZE>>;
 
-    class DataMultiplexerFactoryProvider {
-    public:
-        DataMultiplexerFactoryProvider() {}
-        ~DataMultiplexerFactoryProvider() {}
+class DataMultiplexerFactoryProvider
+{
+public:
+    DataMultiplexerFactoryProvider() {}
+    ~DataMultiplexerFactoryProvider() {}
 
-        template <class T, int BUFFER_SIZE>
-        DataMultiplexerProviderPtr<T, BUFFER_SIZE> getDataMultiplexer(const std::string& stepName) {
-            auto stepIt = _dataMultiplexers.find(stepName);
-            if (stepIt == _dataMultiplexers.end()) {
-                return nullptr;
-            } else {
-                auto internalPtr = stepIt->second;
-                auto multiplexerToReturn = std::static_pointer_cast<DataMultiplexerProvider<T, BUFFER_SIZE>>(internalPtr);
-                return multiplexerToReturn;
-            }
+    template<class T, int BUFFER_SIZE>
+    DataMultiplexerProviderPtr<T, BUFFER_SIZE> getDataMultiplexer(const std::string &stepName)
+    {
+        auto stepIt = _dataMultiplexers.find(stepName);
+        if (stepIt == _dataMultiplexers.end()) {
+            return nullptr;
+        } else {
+            auto internalPtr = stepIt->second;
+            auto multiplexerToReturn =
+                std::static_pointer_cast<DataMultiplexerProvider<T, BUFFER_SIZE>>(internalPtr);
+            return multiplexerToReturn;
         }
+    }
 
-        template <class T, int BUFFER_SIZE>
-        DataMultiplexerProviderPtr<T, BUFFER_SIZE> insertMultiplexer(const std::string& stepName,
-                                                                     DataMultiplexerProviderPtr<T, BUFFER_SIZE> dataMultiplexer) {
-            spdlog::debug("DataMultiplexerFactory::getDataMultiplexer: new instance, stepName : {}", stepName);
-            auto insertResult = _dataMultiplexers.insert(std::make_pair(stepName, std::static_pointer_cast<void>(dataMultiplexer)));
-            if (!insertResult.second) {
-                throw std::runtime_error("Could not save the data multiplexer");
-            }
-            return dataMultiplexer;
+    template<class T, int BUFFER_SIZE>
+    DataMultiplexerProviderPtr<T, BUFFER_SIZE> insertMultiplexer(
+        const std::string &stepName, DataMultiplexerProviderPtr<T, BUFFER_SIZE> dataMultiplexer)
+    {
+        spdlog::debug("DataMultiplexerFactory::getDataMultiplexer: new instance, stepName : {}",
+                      stepName);
+        auto insertResult = _dataMultiplexers.insert(
+            std::make_pair(stepName, std::static_pointer_cast<void>(dataMultiplexer)));
+        if (!insertResult.second) {
+            throw std::runtime_error("Could not save the data multiplexer");
         }
+        return dataMultiplexer;
+    }
 
-        size_t size() const {
-            return _dataMultiplexers.size();
-        }
-    private:
-    std::map<std::string, std::shared_ptr<void> > _dataMultiplexers;
+    size_t size() const { return _dataMultiplexers.size(); }
 
-    };
-}
-}
+private:
+    std::map<std::string, std::shared_ptr<void>> _dataMultiplexers;
+};
+} // namespace streaming
+} // namespace kpsr
 #endif

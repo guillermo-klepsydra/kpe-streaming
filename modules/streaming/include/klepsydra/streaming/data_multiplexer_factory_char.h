@@ -24,9 +24,9 @@
 
 #include <klepsydra/streaming/data_multiplexer_factory_provider.h>
 
+#include <klepsydra/streaming/publish_subscribe_factory_char.h>
 #include <klepsydra/streaming/stream_internal_types.h>
 #include <klepsydra/streaming/streaming_types.h>
-#include <klepsydra/streaming/publish_subscribe_factory_char.h>
 
 namespace kpsr {
 namespace streaming {
@@ -34,15 +34,20 @@ namespace streaming {
 class DataMultiplexerFactoryChar : public PublishSubscribeFactoryChar
 {
 public:
-    DataMultiplexerFactoryChar(kpsr::Container * container);
+    DataMultiplexerFactoryChar(kpsr::Container *container);
 
     ~DataMultiplexerFactoryChar();
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> * getPublisherChar(const std::string & stepName, const size_t vectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> * getSubscriberChar(const std::string & stepName, const size_t vectorSize = 0) override;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<char>>> *getPublisherChar(
+        const std::string &stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<char>>> *getSubscriberChar(
+        const std::string &stepName, const size_t vectorSize = 0) override;
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> * getPublisherUChar(const std::string & stepName, const size_t vectorSize) override;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> * getSubscriberUChar(const std::string & stepName, const size_t vectorSize = 0) override;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<unsigned char>>> *getPublisherUChar(
+        const std::string &stepName, const size_t vectorSize) override;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<unsigned char>>> *getSubscriberUChar(
+        const std::string &stepName, const size_t vectorSize = 0) override;
+
 protected:
     virtual void start() override;
 
@@ -51,21 +56,23 @@ protected:
 private:
     static const int DATA_MULTIPLEXER_SIZE = 8;
 
-    template <class T>
-    using DataMultiplexer = kpsr::high_performance::DataMultiplexerMiddlewareProvider<kpsr::streaming::DataBatchWithId<T>, DATA_MULTIPLEXER_SIZE>;
+    template<class T>
+    using DataMultiplexer =
+        kpsr::high_performance::DataMultiplexerMiddlewareProvider<kpsr::streaming::DataBatchWithId<T>,
+                                                                  DATA_MULTIPLEXER_SIZE>;
 
-    template <class T>
+    template<class T>
     using DataMultiplexerPtr = std::shared_ptr<DataMultiplexer<T>>;
 
-    DataMultiplexerPtr<std::vector<char>> getDataMultiplexerChar(const std::string& stepName,
+    DataMultiplexerPtr<std::vector<char>> getDataMultiplexerChar(const std::string &stepName,
                                                                  const size_t vectorSize);
-    DataMultiplexerPtr<std::vector<unsigned char>> getDataMultiplexerUChar(const std::string& stepName,
-                                                                           const size_t vectorSize);
+    DataMultiplexerPtr<std::vector<unsigned char>> getDataMultiplexerUChar(
+        const std::string &stepName, const size_t vectorSize);
 
-    kpsr::Container * _container;
+    kpsr::Container *_container;
     DataMultiplexerFactoryProvider _dataMultiplexerProviderFactory;
 };
-}
-}
+} // namespace streaming
+} // namespace kpsr
 
 #endif // DATA_MULTIPLEXER_FACTORY_CHAR_H
