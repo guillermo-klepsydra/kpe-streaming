@@ -33,7 +33,7 @@ std::shared_ptr<EventEmitterPublishSubscribeFactoryChar::EventEmitterChar>
 EventEmitterPublishSubscribeFactoryChar::getEventEmitterChar(const std::string &stepName,
                                                              const size_t vectorSize)
 {
-    auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
+    auto &eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
     auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<char>>>(stepName);
     if (emitter) {
         return emitter;
@@ -55,7 +55,7 @@ std::shared_ptr<EventEmitterPublishSubscribeFactoryChar::EventEmitterUChar>
 EventEmitterPublishSubscribeFactoryChar::getEventEmitterUChar(const std::string &stepName,
                                                               const size_t vectorSize)
 {
-    auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
+    auto &eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
     auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<unsigned char>>>(
         stepName);
     if (emitter) {

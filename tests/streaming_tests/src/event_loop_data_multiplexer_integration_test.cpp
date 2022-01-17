@@ -15,15 +15,13 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-
-#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
-
 #include <numeric>
 
 #include "gtest/gtest.h"
+#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
 
-TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest)
+TEST(EventLoopDataMultiplexerPublishSubscribeFactoryTest, IntegrationTest)
 {
     const int num_listeners = 2;
     int data_sent_ctr = 0;
@@ -67,7 +65,7 @@ TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest)
                                });
     }
 
-    eventloopInstance.startup();
+    eventloopInstance.start();
 
     std::thread dataMultipexerPublisherThread([&dataMultiplexerPublisher, &data_sent_ctr]() {
         for (int i = 0; i < 5; i++) {
@@ -83,7 +81,7 @@ TEST(EventLoopPublishSubscribeFactoryTest, SimpleTest)
     });
 
     dataMultipexerPublisherThread.join();
-    eventloopInstance.shutdown();
+    eventloopInstance.stop();
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         dataMultiplexerSubscriber->removeListener("dataMultiplexer_" + std::to_string(i));

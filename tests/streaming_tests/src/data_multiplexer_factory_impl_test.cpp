@@ -16,11 +16,65 @@
 *
 *****************************************************************************/
 
+#include <klepsydra/streaming/data_multiplexer_factory_char.h>
 #include <klepsydra/streaming/data_multiplexer_factory_float32.h>
 
 #include <numeric>
 
 #include "gtest/gtest.h"
+TEST(DataMultiplexerFactoryTest, ConstructorTest)
+{
+    ASSERT_NO_THROW(
+        kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerFloat32Instance(nullptr));
+    ASSERT_NO_THROW(
+        kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerCharInstance(nullptr));
+}
+
+TEST(DataMultiplexerFactoryTest, getPubSubFloat32Test)
+{
+    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr);
+
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
+        *dataMultiplexerPublisher = nullptr;
+    ASSERT_NO_THROW(
+        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer",
+                                                                                  3));
+    ASSERT_NE(dataMultiplexerPublisher, nullptr);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
+        *dataMultiplexerSubscriber = nullptr;
+    ASSERT_NO_THROW(dataMultiplexerSubscriber = dataMultiplexerInstance
+                                                    .getSubscriberF32Aligned("dataMultiplexer", 3));
+    ASSERT_NE(dataMultiplexerSubscriber, nullptr);
+    const std::string registerListenerName = "dataMultiplexerListener";
+    ASSERT_NO_THROW(dataMultiplexerSubscriber->registerListener(
+        registerListenerName,
+        [](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &event) {
+            spdlog::info("Register Listener Float32");
+        }));
+    ASSERT_NO_THROW(dataMultiplexerSubscriber->removeListener(registerListenerName));
+}
+
+TEST(DataMultiplexerFactoryTest, getPubSubCharTest)
+{
+    kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerInstance(nullptr);
+
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>> *dataMultiplexerPublisher =
+        nullptr;
+    ASSERT_NO_THROW(
+        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherChar("dataMultiplexer", 3));
+    ASSERT_NE(dataMultiplexerPublisher, nullptr);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<char>>>
+        *dataMultiplexerSubscriber = nullptr;
+    ASSERT_NO_THROW(
+        dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberChar("dataMultiplexer", 3));
+    ASSERT_NE(dataMultiplexerSubscriber, nullptr);
+    const std::string registerListenerName = "dataMultiplexerListener";
+    ASSERT_NO_THROW(dataMultiplexerSubscriber->registerListener(
+        registerListenerName, [](const kpsr::streaming::DataBatchWithId<std::vector<char>> &event) {
+            spdlog::info("Register Listener Char");
+        }));
+    ASSERT_NO_THROW(dataMultiplexerSubscriber->removeListener(registerListenerName));
+}
 
 TEST(DataMultiplexerFactoryFloat32Test, SimpleTest)
 {

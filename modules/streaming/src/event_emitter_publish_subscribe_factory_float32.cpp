@@ -32,7 +32,7 @@ EventEmitterPublishSubscribeFactoryFloat32::~EventEmitterPublishSubscribeFactory
 std::shared_ptr<EventEmitterF32A> EventEmitterPublishSubscribeFactoryFloat32::getEventEmitterF32A(
     const std::string &stepName, const size_t vectorSize)
 {
-    auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
+    auto &eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
     auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<F32AlignedVector>>(stepName);
     if (emitter) {
         return emitter;
@@ -53,7 +53,7 @@ std::shared_ptr<EventEmitterF32A> EventEmitterPublishSubscribeFactoryFloat32::ge
 std::shared_ptr<EventEmitterMF32A> EventEmitterPublishSubscribeFactoryFloat32::getEventEmitterMF32A(
     const std::string &stepName, const size_t vectorSize, const size_t multiVectorSize)
 {
-    auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
+    auto &eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
     auto emitter = eventEmitterFactory
                        .getEventEmitter<DataBatchWithId<std::vector<F32AlignedVector>>>(stepName);
     if (emitter) {
@@ -79,7 +79,7 @@ std::shared_ptr<EventEmitterMF32A> EventEmitterPublishSubscribeFactoryFloat32::g
 std::shared_ptr<EventEmitterF32> EventEmitterPublishSubscribeFactoryFloat32::getEventEmitterF32(
     const std::string &stepName, const size_t vectorSize)
 {
-    auto eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
+    auto &eventEmitterFactory = _eventEmitterPublishSubscribeFactory->getEventEmitterFactory();
     auto emitter = eventEmitterFactory.getEventEmitter<DataBatchWithId<std::vector<float>>>(
         stepName);
     if (emitter) {
