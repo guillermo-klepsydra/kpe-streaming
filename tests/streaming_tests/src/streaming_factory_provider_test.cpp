@@ -16,6 +16,7 @@
 *
 *****************************************************************************/
 
+#include <klepsydra/streaming/default_thread_distribution_policy_factory_impl.h>
 #include <klepsydra/streaming/streaming_factory_provider.h>
 
 #include "config.h"
@@ -107,7 +108,10 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFloat32)
     environment.setPropertyString("processor_intensive_layers", "max");
     environment.setPropertyString("streaming_conf_file", "");
 
-    kpsr::streaming::StreamingFactoryProvider sut(&environment);
+    kpsr::streaming::DefaultThreadDistributionPolicyFactoryImpl
+        defaultThreadDistributionPolicyFactoryImpl;
+    kpsr::streaming::StreamingFactoryProvider sut(&defaultThreadDistributionPolicyFactoryImpl,
+                                                  &environment);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 =
         sut.getEventLoopFactoryFloat32();
@@ -139,7 +143,10 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionChar)
     environment.setPropertyString("processor_intensive_layers", "max");
     environment.setPropertyString("streaming_conf_file", "");
 
-    kpsr::streaming::StreamingFactoryProvider sut(&environment);
+    kpsr::streaming::DefaultThreadDistributionPolicyFactoryImpl
+        defaultThreadDistributionPolicyFactoryImpl;
+    kpsr::streaming::StreamingFactoryProvider sut(&defaultThreadDistributionPolicyFactoryImpl,
+                                                  &environment);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar> streamingFactoryChar =
         sut.getEventLoopFactoryChar();
@@ -178,7 +185,7 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFileContainer)
     std::string jsonFile = std::string(TEST_DATA) + "/streaming_conf.json";
     environment.setPropertyString("streaming_conf_file", jsonFile);
 
-    kpsr::streaming::StreamingFactoryProvider sut(&environment);
+    kpsr::streaming::StreamingFactoryProvider sut(nullptr, &environment);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 =
         sut.getEventLoopFactoryFloat32();
@@ -197,9 +204,14 @@ TEST(StreamingFactoryProvider, InsufficientThreadsError)
 {
     {
         std::vector<std::shared_ptr<kpsr::streaming::StreamingFactoryProvider>> sut;
+        kpsr::streaming::DefaultThreadDistributionPolicyFactoryImpl
+            defaultThreadDistributionPolicyFactoryImpl;
         for (size_t i = 0; i < std::thread::hardware_concurrency() * 20; i++) {
             sut.emplace_back(std::make_shared<kpsr::streaming::StreamingFactoryProvider>(
-                false, false, true)); // create new provider.
+                &defaultThreadDistributionPolicyFactoryImpl,
+                false,
+                false,
+                true)); // create new provider.
         }
 
         auto start = [&]() {
@@ -222,7 +234,10 @@ TEST(StreamingFactoryProvider, MultiStartStopTest)
 {
     {
         {
-            kpsr::streaming::StreamingFactoryProvider sut(false, false, true);
+            kpsr::streaming::DefaultThreadDistributionPolicyFactoryImpl
+                defaultThreadDistributionPolicyFactoryImpl;
+            kpsr::streaming::StreamingFactoryProvider
+                sut(&defaultThreadDistributionPolicyFactoryImpl, false, false, true);
 
             std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32>
                 streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
@@ -231,7 +246,10 @@ TEST(StreamingFactoryProvider, MultiStartStopTest)
         }
 
         {
-            kpsr::streaming::StreamingFactoryProvider sut(false, false, true);
+            kpsr::streaming::DefaultThreadDistributionPolicyFactoryImpl
+                defaultThreadDistributionPolicyFactoryImpl;
+            kpsr::streaming::StreamingFactoryProvider
+                sut(&defaultThreadDistributionPolicyFactoryImpl, false, false, true);
 
             std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32>
                 streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
@@ -239,7 +257,12 @@ TEST(StreamingFactoryProvider, MultiStartStopTest)
             sut.stop();
         }
 
-        kpsr::streaming::StreamingFactoryProvider sut(false, false, true);
+        kpsr::streaming::DefaultThreadDistributionPolicyFactoryImpl
+            defaultThreadDistributionPolicyFactoryImpl;
+        kpsr::streaming::StreamingFactoryProvider sut(&defaultThreadDistributionPolicyFactoryImpl,
+                                                      false,
+                                                      false,
+                                                      true);
 
         std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32> streamingFactoryFloat32 =
             sut.getEventLoopFactoryFloat32();

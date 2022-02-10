@@ -15,30 +15,20 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-
-#include <klepsydra/streaming/streaming_policy.h>
+#include <klepsydra/streaming/default_thread_distribution_policy.h>
 #include <spdlog/spdlog.h>
 
-static const size_t CORE_RATIO = 1;
-static const int NON_INTENSIVE_STREAM_RATIO = 1;
+namespace kpsr {
+namespace streaming {
 
-kpsr::streaming::DefaultStreamingPolicy::DefaultStreamingPolicy(
-    size_t numberOfCores,
-    int poolSize,
-    size_t nonCriticalThreadPoolSize,
-    int numberOfParallelThreads,
-    const std::vector<std::string> &parallelisedSteps)
-    : StreamingPolicy(poolSize,
-                      numberOfCores,
-                      numberOfCores * CORE_RATIO,
-                      nonCriticalThreadPoolSize,
-                      numberOfParallelThreads,
-                      parallelisedSteps)
-    , streamEventLoopDistribution(_streamingConfiguration.numberOfEventLoops)
+DefaultThreadDistributionPolicy::DefaultThreadDistributionPolicy(size_t numberOfCores,
+                                                                 size_t numberOfEventLoops)
+    : streamEventLoopDistribution(numberOfEventLoops)
+    , _numberOfEventLoops(numberOfEventLoops)
 {
-    for (size_t i = 0; i < _streamingConfiguration.numberOfEventLoops; i++) {
+    for (size_t i = 0; i < _numberOfEventLoops; i++) {
         std::vector<int> cores{static_cast<int>(i % numberOfCores)};
-        _streamingConfiguration.eventLoopCoreMap[i] = cores;
+        eventLoopCoreMap[i] = cores;
         spdlog::debug(
             "DefaultStreamingPolicy::DefaultStreamingPolicy. EventLoop {}, goes to core {}",
             i,
@@ -46,29 +36,23 @@ kpsr::streaming::DefaultStreamingPolicy::DefaultStreamingPolicy(
     }
 }
 
-size_t kpsr::streaming::DefaultStreamingPolicy::addStepToEventLoop(const std::string &stepName)
+size_t DefaultThreadDistributionPolicy::addStepToEventLoop(const std::string &stepName)
 {
-    auto index = _streamingConfiguration.stepIDEventLoopMap.find(stepName);
-    if (index == _streamingConfiguration.stepIDEventLoopMap.end()) {
+    auto index = stepIDEventLoopMap.find(stepName);
+    if (index == stepIDEventLoopMap.end()) {
         size_t minIndex = 0;
-        for (size_t i = 0; i < _streamingConfiguration.numberOfEventLoops; i++) {
+        for (size_t i = 0; i < _numberOfEventLoops; i++) {
             if (streamEventLoopDistribution[i] < streamEventLoopDistribution[minIndex]) {
                 minIndex = i;
             }
         }
         streamEventLoopDistribution[minIndex]++;
-        _streamingConfiguration.stepIDEventLoopMap[stepName] = minIndex;
+        stepIDEventLoopMap[stepName] = minIndex;
         return minIndex;
     } else {
         return index->second;
     }
 }
 
-kpsr::streaming::JsonStreamingPolicy::JsonStreamingPolicy(const std::string &jsonFileName)
-    : StreamingPolicy(StreamingConfiguration(jsonFileName))
-{}
-
-size_t kpsr::streaming::JsonStreamingPolicy::addStepToEventLoop(const std::string &stepName)
-{
-    return _streamingConfiguration.stepIDEventLoopMap[stepName];
-}
+} // namespace streaming
+} // namespace kpsr

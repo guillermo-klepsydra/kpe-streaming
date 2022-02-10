@@ -15,39 +15,31 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
+#ifndef DEAFAULT_THREAD_DISTRIBUTION_POLICY_H
+#define DEAFAULT_THREAD_DISTRIBUTION_POLICY_H
 
-#ifndef STREAMING_CONFIGURATION_H
-#define STREAMING_CONFIGURATION_H
-
-#include <klepsydra/streaming/streaming_types.h>
-#include <klepsydra/streaming/visibility.h>
-
-#include <map>
-#include <sstream>
-#include <vector>
+#include <klepsydra/streaming/thread_distribution_policy.h>
 
 namespace kpsr {
 namespace streaming {
 
-class StreamingConfiguration
+static const size_t CORE_RATIO = 1;
+static const int NON_INTENSIVE_STREAM_RATIO = 1;
+
+class DefaultThreadDistributionPolicy : public ThreadDistributionPolicy
 {
 public:
-    StreamingConfiguration();
-    StreamingConfiguration(int poolSize,
-                           size_t numberOfCores,
-                           size_t numberOfEventLoops,
-                           size_t nonCriticalThreadPoolSize,
-                           int numberOfParallelThreads,
-                           const std::vector<std::string> &parallelisedSteps);
+    DefaultThreadDistributionPolicy(size_t numberOfCores, size_t numberOfEventLoops);
 
-    int poolSize;
-    size_t numberOfCores;
-    size_t numberOfEventLoops;
-    size_t nonCriticalThreadPoolSize;
-    int numberOfParallelThreads;
-    std::vector<std::string> parallelisedSteps;
+    size_t addStepToEventLoop(const std::string &stepName) override;
+
+    std::vector<int> streamEventLoopDistribution;
+
+private:
+    size_t _numberOfEventLoops;
 };
+
 } // namespace streaming
 } // namespace kpsr
 
-#endif // STREAMING_CONFIGURATION_H
+#endif

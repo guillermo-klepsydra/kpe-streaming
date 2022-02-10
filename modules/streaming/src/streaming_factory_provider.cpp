@@ -35,17 +35,21 @@
 namespace kpsr {
 namespace streaming {
 
-StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN, bool useChar, bool useFloat)
+StreamingFactoryProvider::StreamingFactoryProvider(
+    ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
+    bool testDNN,
+    bool useChar,
+    bool useFloat)
     : _container(nullptr)
     , _eventLoopFactoryFloat32(nullptr)
     , _eventLoopFactoryChar(nullptr)
 {
+    size_t numberOfCores = std::thread::hardware_concurrency();
+    size_t numberOfEventLoops = numberOfCores * 1;
+    auto threadDistributionPolicy = threadDistributionPolicyFactory->createThreadDistributionPolicy();
     std::vector<std::string> parallisedLayers = {};
-    _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(std::thread::hardware_concurrency(),
-                                                                4,
-                                                                4,
-                                                                1,
-                                                                parallisedLayers);
+    _streamingConfigurationManager = std::make_unique<StreamingConfigurationManager>(
+        4, numberOfCores, numberOfEventLoops, 4, 1, parallisedLayers, threadDistributionPolicy);
     if (testDNN) {
         auto eventEmitterPublishSubscribeFactory =
             std::make_shared<EventEmitterPublishSubscribeFactory>(_container, 10);
@@ -71,8 +75,10 @@ StreamingFactoryProvider::StreamingFactoryProvider(bool testDNN, bool useChar, b
     }
 }
 
-StreamingFactoryProvider::StreamingFactoryProvider(const std::string &envFileName,
-                                                   kpsr::Container *container)
+StreamingFactoryProvider::StreamingFactoryProvider(
+    ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
+    const std::string &envFileName,
+    kpsr::Container *container)
     : _container(container)
     , _eventLoopFactoryFloat32(nullptr)
     , _eventLoopFactoryChar(nullptr)
@@ -83,11 +89,13 @@ StreamingFactoryProvider::StreamingFactoryProvider(const std::string &envFileNam
         _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(
             &environment);
     }
-    initForEnvironment(&environment);
+    initForEnvironment(threadDistributionPolicyFactory, &environment);
 }
 
-StreamingFactoryProvider::StreamingFactoryProvider(kpsr::Environment *environment,
-                                                   kpsr::Container *container)
+StreamingFactoryProvider::StreamingFactoryProvider(
+    ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
+    kpsr::Environment *environment,
+    kpsr::Container *container)
     : _container(container)
     , _eventLoopFactoryFloat32(nullptr)
     , _eventLoopFactoryChar(nullptr)
@@ -96,7 +104,7 @@ StreamingFactoryProvider::StreamingFactoryProvider(kpsr::Environment *environmen
         _container = kpsr::admin::AdminContainerFactory::getInstance().getContainerForEnv(
             environment);
     }
-    initForEnvironment(environment);
+    initForEnvironment(threadDistributionPolicyFactory, environment);
 }
 
 void StreamingFactoryProvider::setDefaultLogger(const std::string &logFileName, int logLevel)
@@ -120,26 +128,27 @@ void StreamingFactoryProvider::createFactories(bool useChar, bool useFloat)
 {
     check_license();
     auto eventLoopPublishSubscribeFactory =
-        std::make_shared<EventLoopPublishSubscribeFactory>(_container, _streamingPolicy.get());
+        std::make_shared<EventLoopPublishSubscribeFactory>(_container,
+                                                           _streamingConfigurationManager.get());
     if (useChar) {
         _eventLoopFactoryChar =
             std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(
                 eventLoopPublishSubscribeFactory);
-        _dataMultiplexerFactoryChar =
-            std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(_container,
-                                                                          _streamingPolicy.get());
+        _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(
+            _container, _streamingConfigurationManager.get());
     }
     if (useFloat) {
         _eventLoopFactoryFloat32 =
             std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(
                 eventLoopPublishSubscribeFactory);
-        _dataMultiplexerFactoryFloat32 =
-            std::make_shared<kpsr::streaming::DataMultiplexerFactoryFloat32>(_container,
-                                                                             _streamingPolicy.get());
+        _dataMultiplexerFactoryFloat32 = std::make_shared<
+            kpsr::streaming::DataMultiplexerFactoryFloat32>(_container,
+                                                            _streamingConfigurationManager.get());
     }
 }
 
-void StreamingFactoryProvider::initForEnvironment(kpsr::Environment *environment)
+void StreamingFactoryProvider::initForEnvironment(
+    ThreadDistributionPolicyFactory *threadDistributionPolicyFactory, kpsr::Environment *environment)
 {
     std::string logFileName("");
     int logLevel(1);
@@ -155,11 +164,11 @@ void StreamingFactoryProvider::initForEnvironment(kpsr::Environment *environment
     environment->getPropertyBool("use_default_streaming_factory", useDefaultStreamingFactory);
 
     if (useDefaultStreamingFactory) {
-        setDefaultStreaming(environment);
+        setDefaultStreaming(threadDistributionPolicyFactory, environment);
     } else {
         std::string streamingConfigurationFile;
         environment->getPropertyString("streaming_conf_file", streamingConfigurationFile);
-        _streamingPolicy = std::make_unique<kpsr::streaming::JsonStreamingPolicy>(
+        _streamingConfigurationManager = std::make_unique<StreamingConfigurationManager>(
             streamingConfigurationFile);
     }
 
@@ -170,7 +179,8 @@ void StreamingFactoryProvider::initForEnvironment(kpsr::Environment *environment
     createFactories(useChar, useFloat);
 }
 
-void StreamingFactoryProvider::setDefaultStreaming(kpsr::Environment *environment)
+void StreamingFactoryProvider::setDefaultStreaming(
+    ThreadDistributionPolicyFactory *threadDistributionPolicyFactory, kpsr::Environment *environment)
 {
     int poolSize;
     int numberOfCores;
@@ -186,12 +196,19 @@ void StreamingFactoryProvider::setDefaultStreaming(kpsr::Environment *environmen
     environment->getPropertyInt("number_of_parallel_threads", numberOfParallelThreads);
     spdlog::debug("StreamingFactoryProvider::initForEnvironment. numberOfParallelThreads: {}",
                   numberOfParallelThreads);
+
+    size_t numberOfEventLoops = numberOfCores * 1;
+    auto threadDistributionPolicy = threadDistributionPolicyFactory->createThreadDistributionPolicy(
+        environment);
     std::vector<std::string> parallisedLayers = {};
-    _streamingPolicy = std::make_unique<DefaultStreamingPolicy>(numberOfCores,
-                                                                poolSize,
-                                                                nonCriticalThreadPoolSize,
-                                                                numberOfParallelThreads,
-                                                                parallisedLayers);
+    _streamingConfigurationManager =
+        std::make_unique<StreamingConfigurationManager>(poolSize,
+                                                        numberOfCores,
+                                                        numberOfEventLoops,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedLayers,
+                                                        threadDistributionPolicy);
 }
 
 StreamingFactoryProvider::~StreamingFactoryProvider() {}
@@ -220,9 +237,9 @@ std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar>
     return _dataMultiplexerFactoryChar;
 }
 
-StreamingPolicy *StreamingFactoryProvider::getStreamingPolicy()
+StreamingConfigurationManager *StreamingFactoryProvider::getStreamingConfigurationManager()
 {
-    return _streamingPolicy.get();
+    return _streamingConfigurationManager.get();
 }
 
 void StreamingFactoryProvider::start()

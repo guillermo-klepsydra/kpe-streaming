@@ -15,39 +15,31 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-
-#ifndef STREAMING_CONFIGURATION_H
-#define STREAMING_CONFIGURATION_H
-
-#include <klepsydra/streaming/streaming_types.h>
-#include <klepsydra/streaming/visibility.h>
-
-#include <map>
-#include <sstream>
-#include <vector>
+#include <klepsydra/streaming/default_thread_distribution_policy.h>
+#include <klepsydra/streaming/default_thread_distribution_policy_factory_impl.h>
+#include <spdlog/spdlog.h>
 
 namespace kpsr {
 namespace streaming {
 
-class StreamingConfiguration
+std::shared_ptr<ThreadDistributionPolicy>
+DefaultThreadDistributionPolicyFactoryImpl::createThreadDistributionPolicy()
 {
-public:
-    StreamingConfiguration();
-    StreamingConfiguration(int poolSize,
-                           size_t numberOfCores,
-                           size_t numberOfEventLoops,
-                           size_t nonCriticalThreadPoolSize,
-                           int numberOfParallelThreads,
-                           const std::vector<std::string> &parallelisedSteps);
+    size_t numberOfCores = std::thread::hardware_concurrency();
+    size_t numberOfEventLoops = numberOfCores * CORE_RATIO;
+    return std::make_shared<DefaultThreadDistributionPolicy>(numberOfCores, numberOfEventLoops);
+}
 
-    int poolSize;
-    size_t numberOfCores;
-    size_t numberOfEventLoops;
-    size_t nonCriticalThreadPoolSize;
-    int numberOfParallelThreads;
-    std::vector<std::string> parallelisedSteps;
-};
+std::shared_ptr<ThreadDistributionPolicy>
+DefaultThreadDistributionPolicyFactoryImpl::createThreadDistributionPolicy(
+    kpsr::Environment *environment)
+{
+    int numberOfCores;
+    environment->getPropertyInt("number_of_cores", numberOfCores);
+    spdlog::debug("DefaultThreadDistributionPolicyFactoryImpl. numberOfCores: {}", numberOfCores);
+    size_t numberOfEventLoops = numberOfCores * CORE_RATIO;
+    return std::make_shared<DefaultThreadDistributionPolicy>(numberOfCores, numberOfEventLoops);
+}
+
 } // namespace streaming
 } // namespace kpsr
-
-#endif // STREAMING_CONFIGURATION_H

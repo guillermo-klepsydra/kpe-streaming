@@ -15,29 +15,29 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-#include "config.h"
+#ifndef THREAD_DISTRIBUTION_POLICY_FACTORY_H
+#define THREAD_DISTRIBUTION_POLICY_FACTORY_H
 
-#include "gtest/gtest.h"
-#include <klepsydra/streaming/streaming_configuration.h>
+#include <klepsydra/core/environment.h>
+#include <klepsydra/streaming/thread_distribution_policy.h>
+#include <memory>
+
 #include <spdlog/spdlog.h>
 
-TEST(StreamingConfiguration, DefaultConstructionTest)
-{
-    ASSERT_NO_THROW(kpsr::streaming::StreamingConfiguration dummyConfig);
-}
+namespace kpsr {
+namespace streaming {
 
-TEST(StreamingConfiguration, ConstructionTest)
+class ThreadDistributionPolicyFactory
 {
-    int poolSize = 0;
-    int numberOfCores = 2;
-    int nonCriticalThreadPoolSize = 4;
-    int numberOfParallelThreads = 2;
-    std::vector<std::string> parallisedSteps = {};
+public:
+    virtual ~ThreadDistributionPolicyFactory() {}
 
-    ASSERT_NO_THROW(kpsr::streaming::StreamingConfiguration dummyConfig(poolSize,
-                                                                        numberOfCores,
-                                                                        numberOfCores * 1,
-                                                                        nonCriticalThreadPoolSize,
-                                                                        numberOfParallelThreads,
-                                                                        parallisedSteps));
-}
+    virtual std::shared_ptr<ThreadDistributionPolicy> createThreadDistributionPolicy() = 0;
+    virtual std::shared_ptr<ThreadDistributionPolicy> createThreadDistributionPolicy(
+        kpsr::Environment *environment) = 0;
+};
+
+} // namespace streaming
+} // namespace kpsr
+
+#endif

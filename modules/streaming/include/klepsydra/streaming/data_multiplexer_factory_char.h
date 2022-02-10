@@ -26,7 +26,7 @@
 
 #include <klepsydra/streaming/publish_subscribe_factory_char.h>
 #include <klepsydra/streaming/stream_internal_types.h>
-#include <klepsydra/streaming/streaming_policy.h>
+#include <klepsydra/streaming/streaming_configuration_manager.h>
 #include <klepsydra/streaming/streaming_types.h>
 
 namespace kpsr {
@@ -35,7 +35,8 @@ namespace streaming {
 class DataMultiplexerFactoryChar : public PublishSubscribeFactoryChar
 {
 public:
-    DataMultiplexerFactoryChar(kpsr::Container *container, StreamingPolicy *streamingPolicy);
+    DataMultiplexerFactoryChar(kpsr::Container *container,
+                               StreamingConfigurationManager *streamingConfigurationManager);
 
     ~DataMultiplexerFactoryChar();
 

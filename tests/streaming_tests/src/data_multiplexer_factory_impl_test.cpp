@@ -15,9 +15,10 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-
 #include <klepsydra/streaming/data_multiplexer_factory_char.h>
 #include <klepsydra/streaming/data_multiplexer_factory_float32.h>
+#include <klepsydra/streaming/default_thread_distribution_policy.h>
+#include <klepsydra/streaming/streaming_configuration_manager.h>
 
 #include <numeric>
 
@@ -31,29 +32,42 @@ class DataMultiplexerFactoryTest : public ::testing::TestWithParam<TestTuple>
 protected:
     DataMultiplexerFactoryTest()
         : container(nullptr)
+        , poolSize(2)
+        , numberOfCores(std::thread::hardware_concurrency())
+        , numberOfEventLoops(std::thread::hardware_concurrency() * 1)
+        , nonCriticalThreadPoolSize(1)
+        , numberOfParallelThreads(1)
         , parallisedStreams()
-        , defaultStreamingPolicy(std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(
-              std::thread::hardware_concurrency(), 2, 1, 1, parallisedStreams))
-        , streamingPolicy(nullptr)
+        , defaultThreadDistributionPolicy(
+              std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
+                                                                                 numberOfEventLoops))
     {}
     virtual void SetUp()
     {
         bool isNullStreaming;
         std::tie(container, isNullStreaming) = GetParam();
         if (isNullStreaming) {
-            streamingPolicy = defaultStreamingPolicy.get();
+            streamingConfigurationManager = std::make_unique<
+                kpsr::streaming::StreamingConfigurationManager>(poolSize,
+                                                                numberOfCores,
+                                                                numberOfEventLoops,
+                                                                nonCriticalThreadPoolSize,
+                                                                numberOfParallelThreads,
+                                                                parallisedStreams,
+                                                                defaultThreadDistributionPolicy);
         }
     }
 
-    virtual void TearDown()
-    {
-        streamingPolicy = nullptr;
-        container = nullptr;
-    }
+    virtual void TearDown() { container = nullptr; }
     kpsr::Container *container;
+    int poolSize;
+    size_t numberOfCores;
+    size_t numberOfEventLoops;
+    size_t nonCriticalThreadPoolSize;
+    int numberOfParallelThreads;
     std::vector<std::string> parallisedStreams;
-    std::unique_ptr<kpsr::streaming::StreamingPolicy> defaultStreamingPolicy;
-    kpsr::streaming::StreamingPolicy *streamingPolicy;
+    std::shared_ptr<kpsr::streaming::DefaultThreadDistributionPolicy> defaultThreadDistributionPolicy;
+    std::unique_ptr<kpsr::streaming::StreamingConfigurationManager> streamingConfigurationManager;
 };
 
 kpsr::mem::MemEnv testEnvironment;
@@ -66,17 +80,17 @@ INSTANTIATE_TEST_SUITE_P(DataMultiplexerFactoryTests,
 
 TEST_P(DataMultiplexerFactoryTest, ConstructorTest)
 {
-    ASSERT_NO_THROW(kpsr::streaming::DataMultiplexerFactoryFloat32
-                        dataMultiplexerFloat32Instance(container, streamingPolicy));
     ASSERT_NO_THROW(
-        kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerCharInstance(container,
-                                                                                streamingPolicy));
+        kpsr::streaming::DataMultiplexerFactoryFloat32
+            dataMultiplexerFloat32Instance(container, streamingConfigurationManager.get()));
+    ASSERT_NO_THROW(kpsr::streaming::DataMultiplexerFactoryChar
+                        dataMultiplexerCharInstance(container, streamingConfigurationManager.get()));
 }
 
 TEST_P(DataMultiplexerFactoryTest, getPubSubFloat32Test)
 {
-    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(container,
-                                                                           streamingPolicy);
+    kpsr::streaming::DataMultiplexerFactoryFloat32
+        dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
         *dataMultiplexerPublisher = nullptr;
@@ -100,7 +114,8 @@ TEST_P(DataMultiplexerFactoryTest, getPubSubFloat32Test)
 
 TEST_P(DataMultiplexerFactoryTest, getPubSubCharTest)
 {
-    kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerInstance(container, streamingPolicy);
+    kpsr::streaming::DataMultiplexerFactoryChar
+        dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>> *dataMultiplexerPublisher =
         nullptr;
@@ -126,8 +141,8 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestFloat)
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(container,
-                                                                           streamingPolicy);
+    kpsr::streaming::DataMultiplexerFactoryFloat32
+        dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> *
         dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer",
@@ -183,7 +198,8 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestChar)
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerInstance(container, streamingPolicy);
+    kpsr::streaming::DataMultiplexerFactoryChar
+        dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>> *dataMultiplexerPublisher =
         dataMultiplexerInstance.getPublisherChar("dataMultiplexer", 3);
@@ -235,7 +251,8 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestUChar)
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryChar dataMultiplexerInstance(container, streamingPolicy);
+    kpsr::streaming::DataMultiplexerFactoryChar
+        dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
         *dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherUChar("dataMultiplexer", 3);

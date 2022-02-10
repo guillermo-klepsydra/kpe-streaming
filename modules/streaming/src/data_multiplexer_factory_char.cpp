@@ -22,15 +22,15 @@
 namespace kpsr {
 namespace streaming {
 
-DataMultiplexerFactoryChar::DataMultiplexerFactoryChar(kpsr::Container *container,
-                                                       StreamingPolicy *streamingPolicy)
+DataMultiplexerFactoryChar::DataMultiplexerFactoryChar(
+    kpsr::Container *container, StreamingConfigurationManager *streamingConfigurationManager)
     : kpsr::Service(nullptr, "DataMultiplexerFactoryCharService")
     , _container(container)
 {
-    if (streamingPolicy) {
-        _affinityIdFunction = [streamingPolicy](const std::string &name) {
+    if (streamingConfigurationManager) {
+        _affinityIdFunction = [streamingConfigurationManager](const std::string &name) {
             std::vector<int> cpuAffinity = {};
-            cpuAffinity.push_back(streamingPolicy->addStepToEventLoop(name));
+            cpuAffinity.push_back(streamingConfigurationManager->addStepToEventLoop(name));
             return cpuAffinity;
         };
     }

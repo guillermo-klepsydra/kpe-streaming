@@ -24,7 +24,8 @@
 #include <klepsydra/streaming/data_multiplexer_factory_float32.h>
 #include <klepsydra/streaming/publish_subscribe_factory_char.h>
 #include <klepsydra/streaming/publish_subscribe_factory_float32.h>
-#include <klepsydra/streaming/streaming_policy.h>
+#include <klepsydra/streaming/streaming_configuration_manager.h>
+#include <klepsydra/streaming/thread_distribution_policy_factory.h>
 #include <klepsydra/streaming/visibility.h>
 
 namespace kpsr {
@@ -33,9 +34,16 @@ namespace streaming {
 class StreamingFactoryProvider
 {
 public:
-    StreamingFactoryProvider(bool testDNN, bool useChar, bool useFloat);
-    StreamingFactoryProvider(const std::string &envFileName, kpsr::Container *container = nullptr);
-    StreamingFactoryProvider(kpsr::Environment *environment, kpsr::Container *container = nullptr);
+    StreamingFactoryProvider(ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
+                             bool testDNN,
+                             bool useChar,
+                             bool useFloat);
+    StreamingFactoryProvider(ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
+                             const std::string &envFileName,
+                             kpsr::Container *container = nullptr);
+    StreamingFactoryProvider(ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
+                             kpsr::Environment *environment,
+                             kpsr::Container *container = nullptr);
 
     virtual ~StreamingFactoryProvider();
 
@@ -44,20 +52,22 @@ public:
     std::shared_ptr<PublishSubscribeFactoryFloat32> &getDataMultiplexerFactoryFloat32();
     std::shared_ptr<PublishSubscribeFactoryChar> &getDataMultiplexerFactoryChar();
 
-    StreamingPolicy *getStreamingPolicy();
+    StreamingConfigurationManager *getStreamingConfigurationManager();
 
     void start();
     void stop();
 
 private:
     void setDefaultLogger(const std::string &logFileName = "", int logLevel = 1);
-    void initForEnvironment(kpsr::Environment *environment);
+    void initForEnvironment(ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
+                            kpsr::Environment *environment);
 
-    void setDefaultStreaming(kpsr::Environment *environment);
+    void setDefaultStreaming(ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
+                             kpsr::Environment *environment);
 
     void createFactories(bool useChar, bool useFloat);
 
-    std::unique_ptr<StreamingPolicy> _streamingPolicy;
+    std::unique_ptr<StreamingConfigurationManager> _streamingConfigurationManager;
     kpsr::Container *_container;
 
     std::vector<std::string> _procIntensiveStreams;

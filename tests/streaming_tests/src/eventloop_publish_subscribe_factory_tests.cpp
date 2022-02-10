@@ -19,24 +19,35 @@
 
 #include "gtest/gtest.h"
 #include <klepsydra/streaming/data_multiplexer_factory_float32.h>
+#include <klepsydra/streaming/default_thread_distribution_policy.h>
 #include <klepsydra/streaming/event_loop_publish_subscribe_factory_char.h>
 #include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
 
 TEST(EventLoopPublishSubscribeFactoryTest, TestConstructorFactoryFloat32)
 {
+    int poolSize = 2;
+    size_t numberOfCores = std::thread::hardware_concurrency();
+    size_t numberOfEventLoops = numberOfCores * 1;
+    size_t nonCriticalThreadPoolSize = 1;
+    int numberOfParallelThreads = 1;
     std::vector<std::string> parallisedStreams = {};
-    std::unique_ptr<kpsr::streaming::DefaultStreamingPolicy> defaultStreamingPolicy =
-        std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(std::thread::hardware_concurrency(),
-                                                                  2,
-                                                                  1,
-                                                                  1,
-                                                                  parallisedStreams);
+    auto defaultThreadDistributionPolicy =
+        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
+                                                                           numberOfEventLoops);
+    auto streamingConfigurationManager = std::make_unique<
+        kpsr::streaming::StreamingConfigurationManager>(poolSize,
+                                                        numberOfCores,
+                                                        numberOfEventLoops,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedStreams,
+                                                        defaultThreadDistributionPolicy);
+
     std::shared_ptr<kpsr::streaming::EventLoopPublishSubscribeFactory>
         eventLoopPubSubFactoryInstance = nullptr;
-    ASSERT_NO_THROW(
-        eventLoopPubSubFactoryInstance = std::make_shared<
-            kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
-                                                               defaultStreamingPolicy.get()));
+    ASSERT_NO_THROW(eventLoopPubSubFactoryInstance =
+                        std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory>(
+                            nullptr, streamingConfigurationManager.get()));
     ASSERT_NE(eventLoopPubSubFactoryInstance.get(), nullptr);
 
     ASSERT_NO_THROW(kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventLoopInstance(
@@ -45,15 +56,27 @@ TEST(EventLoopPublishSubscribeFactoryTest, TestConstructorFactoryFloat32)
 
 TEST(EventLoopPublishSubscribeFactoryTest, FactoryFloat32Test)
 {
+    int poolSize = 2;
+    size_t numberOfCores = std::thread::hardware_concurrency();
+    size_t numberOfEventLoops = numberOfCores * 1;
+    size_t nonCriticalThreadPoolSize = 1;
+    int numberOfParallelThreads = 1;
     std::vector<std::string> parallisedStreams = {};
-    std::unique_ptr<kpsr::streaming::DefaultStreamingPolicy> defaultStreamingPolicy =
-        std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(std::thread::hardware_concurrency(),
-                                                                  2,
-                                                                  1,
-                                                                  1,
-                                                                  parallisedStreams);
+    auto defaultThreadDistributionPolicy =
+        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
+                                                                           numberOfEventLoops);
+    auto streamingConfigurationManager = std::make_unique<
+        kpsr::streaming::StreamingConfigurationManager>(poolSize,
+                                                        numberOfCores,
+                                                        numberOfEventLoops,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedStreams,
+                                                        defaultThreadDistributionPolicy);
+
     auto eventLoopPubSubFactoryInstance = std::make_shared<
-        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr, defaultStreamingPolicy.get());
+        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
+                                                           streamingConfigurationManager.get());
 
     kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventLoopInstance(
         eventLoopPubSubFactoryInstance);
@@ -83,19 +106,29 @@ TEST(EventLoopPublishSubscribeFactoryTest, FactoryFloat32Test)
 
 TEST(EventLoopPublishSubscribeFactoryTest, TestConstructorFactoryChar)
 {
+    int poolSize = 2;
+    size_t numberOfCores = std::thread::hardware_concurrency();
+    size_t numberOfEventLoops = numberOfCores * 1;
+    size_t nonCriticalThreadPoolSize = 1;
+    int numberOfParallelThreads = 1;
     std::vector<std::string> parallisedStreams = {};
-    std::unique_ptr<kpsr::streaming::DefaultStreamingPolicy> defaultStreamingPolicy =
-        std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(std::thread::hardware_concurrency(),
-                                                                  2,
-                                                                  1,
-                                                                  1,
-                                                                  parallisedStreams);
+    auto defaultThreadDistributionPolicy =
+        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
+                                                                           numberOfEventLoops);
+    auto streamingConfigurationManager = std::make_unique<
+        kpsr::streaming::StreamingConfigurationManager>(poolSize,
+                                                        numberOfCores,
+                                                        numberOfEventLoops,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedStreams,
+                                                        defaultThreadDistributionPolicy);
+
     std::shared_ptr<kpsr::streaming::EventLoopPublishSubscribeFactory>
         eventLoopPubSubFactoryInstance = nullptr;
-    ASSERT_NO_THROW(
-        eventLoopPubSubFactoryInstance = std::make_shared<
-            kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
-                                                               defaultStreamingPolicy.get()));
+    ASSERT_NO_THROW(eventLoopPubSubFactoryInstance =
+                        std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory>(
+                            nullptr, streamingConfigurationManager.get()));
     ASSERT_NE(eventLoopPubSubFactoryInstance.get(), nullptr);
 
     ASSERT_NO_THROW(kpsr::streaming::EventLoopPublishSubscribeFactoryChar eventLoopInstance(
@@ -104,15 +137,27 @@ TEST(EventLoopPublishSubscribeFactoryTest, TestConstructorFactoryChar)
 
 TEST(EventLoopPublishSubscribeFactoryTest, FactoryCharTest)
 {
+    int poolSize = 2;
+    size_t numberOfCores = std::thread::hardware_concurrency();
+    size_t numberOfEventLoops = numberOfCores * 1;
+    size_t nonCriticalThreadPoolSize = 1;
+    int numberOfParallelThreads = 1;
     std::vector<std::string> parallisedStreams = {};
-    std::unique_ptr<kpsr::streaming::DefaultStreamingPolicy> defaultStreamingPolicy =
-        std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(std::thread::hardware_concurrency(),
-                                                                  2,
-                                                                  1,
-                                                                  1,
-                                                                  parallisedStreams);
+    auto defaultThreadDistributionPolicy =
+        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
+                                                                           numberOfEventLoops);
+    auto streamingConfigurationManager = std::make_unique<
+        kpsr::streaming::StreamingConfigurationManager>(poolSize,
+                                                        numberOfCores,
+                                                        numberOfEventLoops,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedStreams,
+                                                        defaultThreadDistributionPolicy);
+
     auto eventLoopPubSubFactoryInstance = std::make_shared<
-        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr, defaultStreamingPolicy.get());
+        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
+                                                           streamingConfigurationManager.get());
 
     kpsr::streaming::EventLoopPublishSubscribeFactoryChar eventLoopInstance(
         eventLoopPubSubFactoryInstance);
@@ -138,15 +183,27 @@ TEST(EventLoopPublishSubscribeFactoryTest, FactoryCharTest)
 
 TEST(EventLoopPublishSubscribeFactoryTest, PublisherSubscriberTest)
 {
+    int poolSize = 2;
+    size_t numberOfCores = std::thread::hardware_concurrency();
+    size_t numberOfEventLoops = numberOfCores * 1;
+    size_t nonCriticalThreadPoolSize = 1;
+    int numberOfParallelThreads = 1;
     std::vector<std::string> parallisedStreams = {};
-    std::unique_ptr<kpsr::streaming::DefaultStreamingPolicy> defaultStreamingPolicy =
-        std::make_unique<kpsr::streaming::DefaultStreamingPolicy>(std::thread::hardware_concurrency(),
-                                                                  2,
-                                                                  1,
-                                                                  1,
-                                                                  parallisedStreams);
+    auto defaultThreadDistributionPolicy =
+        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
+                                                                           numberOfEventLoops);
+    auto streamingConfigurationManager = std::make_unique<
+        kpsr::streaming::StreamingConfigurationManager>(poolSize,
+                                                        numberOfCores,
+                                                        numberOfEventLoops,
+                                                        nonCriticalThreadPoolSize,
+                                                        numberOfParallelThreads,
+                                                        parallisedStreams,
+                                                        defaultThreadDistributionPolicy);
+
     auto eventLoopPublishSubscribeFactory = std::make_shared<
-        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr, defaultStreamingPolicy.get());
+        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
+                                                           streamingConfigurationManager.get());
     kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventLoopInstance(
         eventLoopPublishSubscribeFactory);
 

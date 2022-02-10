@@ -21,7 +21,7 @@
 
 #include <klepsydra/admin/container_utils.h>
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
-#include <klepsydra/streaming/streaming_policy.h>
+#include <klepsydra/streaming/streaming_configuration_manager.h>
 
 namespace kpsr {
 namespace streaming {
@@ -34,13 +34,14 @@ using EventLoopPtr = std::shared_ptr<FactoryEventLoopType>;
 class EventLoopPublishSubscribeFactory
 {
 public:
-    EventLoopPublishSubscribeFactory(kpsr::Container *container, StreamingPolicy *streamingPolicy);
+    EventLoopPublishSubscribeFactory(kpsr::Container *container,
+                                     StreamingConfigurationManager *streamingConfigurationManager);
 
     virtual ~EventLoopPublishSubscribeFactory();
 
     const std::vector<EventLoopPtr> getEventLoops();
 
-    const StreamingPolicy *getStreamingPolicy();
+    const StreamingConfigurationManager *getStreamingConfigurationManager();
 
     void start();
     void stop();
@@ -60,7 +61,7 @@ public:
 
 private:
     kpsr::Container *_container;
-    StreamingPolicy *_streamingPolicy;
+    StreamingConfigurationManager *_streamingConfigurationManager;
     int _poolSize;
     std::vector<EventLoopPtr> _eventLoops;
 };

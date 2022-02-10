@@ -15,39 +15,23 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
+#ifndef DEFAULT_THREAD_DISTRIBUTION_POLICY_FACTORY_IMPL_H
+#define DEFAULT_THREAD_DISTRIBUTION_POLICY_FACTORY_IMPL_H
 
-#ifndef STREAMING_CONFIGURATION_H
-#define STREAMING_CONFIGURATION_H
-
-#include <klepsydra/streaming/streaming_types.h>
-#include <klepsydra/streaming/visibility.h>
-
-#include <map>
-#include <sstream>
-#include <vector>
+#include <klepsydra/streaming/thread_distribution_policy_factory.h>
 
 namespace kpsr {
 namespace streaming {
 
-class StreamingConfiguration
+class DefaultThreadDistributionPolicyFactoryImpl : public ThreadDistributionPolicyFactory
 {
 public:
-    StreamingConfiguration();
-    StreamingConfiguration(int poolSize,
-                           size_t numberOfCores,
-                           size_t numberOfEventLoops,
-                           size_t nonCriticalThreadPoolSize,
-                           int numberOfParallelThreads,
-                           const std::vector<std::string> &parallelisedSteps);
-
-    int poolSize;
-    size_t numberOfCores;
-    size_t numberOfEventLoops;
-    size_t nonCriticalThreadPoolSize;
-    int numberOfParallelThreads;
-    std::vector<std::string> parallelisedSteps;
+    std::shared_ptr<ThreadDistributionPolicy> createThreadDistributionPolicy() override;
+    std::shared_ptr<ThreadDistributionPolicy> createThreadDistributionPolicy(
+        kpsr::Environment *environment) override;
 };
+
 } // namespace streaming
 } // namespace kpsr
 
-#endif // STREAMING_CONFIGURATION_H
+#endif

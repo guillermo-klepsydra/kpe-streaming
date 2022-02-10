@@ -16,38 +16,26 @@
 *
 *****************************************************************************/
 
-#ifndef STREAMING_CONFIGURATION_H
-#define STREAMING_CONFIGURATION_H
+#ifndef JSON_THREAD_DISTRIBUTION_POLICY_H
+#define JSON_THREAD_DISTRIBUTION_POLICY_H
 
-#include <klepsydra/streaming/streaming_types.h>
-#include <klepsydra/streaming/visibility.h>
-
-#include <map>
-#include <sstream>
-#include <vector>
+#include <klepsydra/streaming/thread_distribution_policy.h>
 
 namespace kpsr {
 namespace streaming {
 
-class StreamingConfiguration
+class JsonThreadDistributionPolicy : public ThreadDistributionPolicy
 {
 public:
-    StreamingConfiguration();
-    StreamingConfiguration(int poolSize,
-                           size_t numberOfCores,
-                           size_t numberOfEventLoops,
-                           size_t nonCriticalThreadPoolSize,
-                           int numberOfParallelThreads,
-                           const std::vector<std::string> &parallelisedSteps);
+    JsonThreadDistributionPolicy() {}
 
-    int poolSize;
-    size_t numberOfCores;
-    size_t numberOfEventLoops;
-    size_t nonCriticalThreadPoolSize;
-    int numberOfParallelThreads;
-    std::vector<std::string> parallelisedSteps;
+    virtual size_t addStepToEventLoop(const std::string &stepName) override
+    {
+        return stepIDEventLoopMap[stepName];
+    }
 };
+
 } // namespace streaming
 } // namespace kpsr
 
-#endif // STREAMING_CONFIGURATION_H
+#endif

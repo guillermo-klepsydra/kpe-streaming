@@ -20,7 +20,6 @@
 #define PUBLISH_SUBCRIBE_EVENTLOOP_FACTORY_FLOAT32_H
 
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
-#include <klepsydra/streaming/streaming_policy.h>
 
 #include <klepsydra/streaming/event_loop_publish_subscribe_factory.h>
 #include <klepsydra/streaming/publish_subscribe_factory_float32.h>
