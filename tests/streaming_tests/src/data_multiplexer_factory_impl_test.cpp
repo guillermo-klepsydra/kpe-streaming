@@ -15,10 +15,10 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-#include <klepsydra/streaming/data_multiplexer_factory_char.h>
-#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
 #include <klepsydra/streaming/default_thread_distribution_policy.h>
 #include <klepsydra/streaming/streaming_configuration_manager.h>
+
+#include <klepsydra/streaming/data_multiplexer_publish_subscribe_factory.h>
 
 #include <numeric>
 
@@ -81,27 +81,29 @@ INSTANTIATE_TEST_SUITE_P(DataMultiplexerFactoryTests,
 TEST_P(DataMultiplexerFactoryTest, ConstructorTest)
 {
     ASSERT_NO_THROW(
-        kpsr::streaming::DataMultiplexerFactoryFloat32
+        kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::F32AlignedVector>
             dataMultiplexerFloat32Instance(container, streamingConfigurationManager.get()));
-    ASSERT_NO_THROW(kpsr::streaming::DataMultiplexerFactoryChar
-                        dataMultiplexerCharInstance(container, streamingConfigurationManager.get()));
+    ASSERT_NO_THROW(
+        kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::I8AlignedVector>
+            dataMultiplexerCharInstance(container, streamingConfigurationManager.get()));
+    ASSERT_NO_THROW(
+        kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::UI8AlignedVector>
+            dataMultiplexerUCharInstance(container, streamingConfigurationManager.get()));
 }
 
 TEST_P(DataMultiplexerFactoryTest, getPubSubFloat32Test)
 {
-    kpsr::streaming::DataMultiplexerFactoryFloat32
+    kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::F32AlignedVector>
         dataMultiplexerInstance(container, streamingConfigurationManager.get());
-
     kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
         *dataMultiplexerPublisher = nullptr;
     ASSERT_NO_THROW(
-        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer",
-                                                                                  3));
+        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisher("dataMultiplexer", 3));
     ASSERT_NE(dataMultiplexerPublisher, nullptr);
     kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
         *dataMultiplexerSubscriber = nullptr;
-    ASSERT_NO_THROW(dataMultiplexerSubscriber = dataMultiplexerInstance
-                                                    .getSubscriberF32Aligned("dataMultiplexer", 3));
+    ASSERT_NO_THROW(
+        dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriber("dataMultiplexer", 3));
     ASSERT_NE(dataMultiplexerSubscriber, nullptr);
     const std::string registerListenerName = "dataMultiplexerListener";
     ASSERT_NO_THROW(dataMultiplexerSubscriber->registerListener(
@@ -114,22 +116,23 @@ TEST_P(DataMultiplexerFactoryTest, getPubSubFloat32Test)
 
 TEST_P(DataMultiplexerFactoryTest, getPubSubCharTest)
 {
-    kpsr::streaming::DataMultiplexerFactoryChar
+    kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::I8AlignedVector>
         dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>> *dataMultiplexerPublisher =
-        nullptr;
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector>>
+        *dataMultiplexerPublisher = nullptr;
     ASSERT_NO_THROW(
-        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherChar("dataMultiplexer", 3));
+        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisher("dataMultiplexer", 3));
     ASSERT_NE(dataMultiplexerPublisher, nullptr);
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<char>>>
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector>>
         *dataMultiplexerSubscriber = nullptr;
     ASSERT_NO_THROW(
-        dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberChar("dataMultiplexer", 3));
+        dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriber("dataMultiplexer", 3));
     ASSERT_NE(dataMultiplexerSubscriber, nullptr);
     const std::string registerListenerName = "dataMultiplexerListener";
     ASSERT_NO_THROW(dataMultiplexerSubscriber->registerListener(
-        registerListenerName, [](const kpsr::streaming::DataBatchWithId<std::vector<char>> &event) {
+        registerListenerName,
+        [](const kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector> &event) {
             spdlog::info("Register Listener Char");
         }));
     ASSERT_NO_THROW(dataMultiplexerSubscriber->removeListener(registerListenerName));
@@ -141,15 +144,13 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestFloat)
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryFloat32
+    kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::F32AlignedVector>
         dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> *
-        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer",
-                                                                                  3);
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
+        *dataMultiplexerPublisher = dataMultiplexerInstance.getPublisher("dataMultiplexer", 3);
     kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
-        *dataMultiplexerSubscriber =
-            dataMultiplexerInstance.getSubscriberF32Aligned("dataMultiplexer", 3);
+        *dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriber("dataMultiplexer", 3);
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         dataMultiplexerSubscriber->registerListener(
@@ -198,28 +199,30 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestChar)
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryChar
+    kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::I8AlignedVector>
         dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>> *dataMultiplexerPublisher =
-        dataMultiplexerInstance.getPublisherChar("dataMultiplexer", 3);
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<char>>> *
-        dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberChar("dataMultiplexer", 3);
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector>>
+        *dataMultiplexerPublisher = dataMultiplexerInstance.getPublisher("dataMultiplexer", 3);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector>>
+        *dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriber("dataMultiplexer", 3);
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
-        dataMultiplexerSubscriber
-            ->registerListener("data_received_ctr_" + std::to_string(i),
-                               [i, &data_received_ctr](
-                                   const kpsr::streaming::DataBatchWithId<std::vector<char>> &event) {
-                                   data_received_ctr[i]++;
-                               });
+        dataMultiplexerSubscriber->registerListener(
+            "data_received_ctr_" + std::to_string(i),
+            [i, &data_received_ctr](
+                const kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector> &event) {
+                data_received_ctr[i]++;
+            });
     }
 
     std::thread dataMultipexerPublisherThread([&dataMultiplexerPublisher, &data_sent_ctr]() {
         for (size_t i = 0; i < 5; i++) {
-            std::shared_ptr<std::vector<char>> inputPtr = std::make_shared<std::vector<char>>(
-                std::initializer_list<char>{char(i + 1), char(i + 2), char(i + 3)});
-            kpsr::streaming::DataBatchWithId<std::vector<char>> inputDataBatchWithId(0, inputPtr);
+            std::shared_ptr<kpsr::streaming::I8AlignedVector> inputPtr =
+                std::make_shared<kpsr::streaming::I8AlignedVector>(
+                    std::initializer_list<int8_t>{int8_t(i + 1), int8_t(i + 2), int8_t(i + 3)});
+            kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector>
+                inputDataBatchWithId(0, inputPtr);
             dataMultiplexerPublisher->publish(inputDataBatchWithId);
             data_sent_ctr++;
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -251,32 +254,29 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestUChar)
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryChar
+    kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::UI8AlignedVector>
         dataMultiplexerInstance(container, streamingConfigurationManager.get());
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
-        *dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherUChar("dataMultiplexer", 3);
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>>
-        *dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriberUChar("dataMultiplexer",
-                                                                                3);
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::UI8AlignedVector>>
+        *dataMultiplexerPublisher = dataMultiplexerInstance.getPublisher("dataMultiplexer", 3);
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::UI8AlignedVector>>
+        *dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriber("dataMultiplexer", 3);
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         dataMultiplexerSubscriber->registerListener(
             "data_received_ctr_" + std::to_string(i),
             [i, &data_received_ctr](
-                const kpsr::streaming::DataBatchWithId<std::vector<unsigned char>> &event) {
+                const kpsr::streaming::DataBatchWithId<kpsr::streaming::UI8AlignedVector> &event) {
                 data_received_ctr[i]++;
             });
     }
 
     std::thread dataMultipexerPublisherThread([&dataMultiplexerPublisher, &data_sent_ctr]() {
         for (size_t i = 0; i < 5; i++) {
-            std::shared_ptr<std::vector<unsigned char>> inputPtr =
-                std::make_shared<std::vector<unsigned char>>(
-                    std::initializer_list<unsigned char>{(unsigned char) (i + 1),
-                                                         (unsigned char) (i + 2),
-                                                         (unsigned char) (i + 3)});
-            kpsr::streaming::DataBatchWithId<std::vector<unsigned char>>
+            std::shared_ptr<kpsr::streaming::UI8AlignedVector> inputPtr =
+                std::make_shared<kpsr::streaming::UI8AlignedVector>(
+                    std::initializer_list<uint8_t>{uint8_t(i + 1), uint8_t(i + 2), uint8_t(i + 3)});
+            kpsr::streaming::DataBatchWithId<kpsr::streaming::UI8AlignedVector>
                 inputDataBatchWithId(0, inputPtr);
             dataMultiplexerPublisher->publish(inputDataBatchWithId);
             data_sent_ctr++;

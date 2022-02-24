@@ -21,11 +21,11 @@
 
 #include <klepsydra/streaming/streaming_factory_provider.h>
 
-#include <klepsydra/streaming/event_emitter_publish_subscribe_factory_char.h>
-#include <klepsydra/streaming/event_emitter_publish_subscribe_factory_float32.h>
+#include <klepsydra/streaming/data_multiplexer_publish_subscribe_factory.h>
+#include <klepsydra/streaming/event_emitter_factory.h>
+#include <klepsydra/streaming/event_emitter_publish_subscribe_factory.h>
+#include <klepsydra/streaming/event_loop_factory.h>
 #include <klepsydra/streaming/event_loop_publish_subscribe_factory.h>
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory_char.h>
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
 
 #include <klepsydra/admin/check_license.h>
 
@@ -36,10 +36,7 @@ namespace kpsr {
 namespace streaming {
 
 StreamingFactoryProvider::StreamingFactoryProvider(
-    ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
-    bool testDNN,
-    bool useChar,
-    bool useFloat)
+    ThreadDistributionPolicyFactory *threadDistributionPolicyFactory, bool testDNN)
     : _container(nullptr)
     , _eventLoopFactoryFloat32(nullptr)
     , _eventLoopFactoryChar(nullptr)
@@ -51,27 +48,30 @@ StreamingFactoryProvider::StreamingFactoryProvider(
     _streamingConfigurationManager = std::make_unique<StreamingConfigurationManager>(
         4, numberOfCores, numberOfEventLoops, 4, 1, parallisedLayers, threadDistributionPolicy);
     if (testDNN) {
-        auto eventEmitterPublishSubscribeFactory =
-            std::make_shared<EventEmitterPublishSubscribeFactory>(_container, 10);
+        auto eventEmitterFactory = std::make_shared<EventEmitterFactory>(_container, 10);
         setDefaultLogger();
-        if (useChar) {
-            _eventLoopFactoryChar =
-                std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(
-                    eventEmitterPublishSubscribeFactory);
-            _dataMultiplexerFactoryChar =
-                std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryChar>(
-                    eventEmitterPublishSubscribeFactory);
-        }
-        if (useFloat) {
-            _eventLoopFactoryFloat32 =
-                std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(
-                    eventEmitterPublishSubscribeFactory);
-            _dataMultiplexerFactoryFloat32 =
-                std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactoryFloat32>(
-                    eventEmitterPublishSubscribeFactory);
-        }
+        _eventLoopFactoryChar =
+            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<I8AlignedVector>>(
+                eventEmitterFactory);
+        _dataMultiplexerFactoryChar =
+            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<I8AlignedVector>>(
+                eventEmitterFactory);
+
+        _eventLoopFactoryUChar =
+            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<UI8AlignedVector>>(
+                eventEmitterFactory);
+        _dataMultiplexerFactoryUChar =
+            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<UI8AlignedVector>>(
+                eventEmitterFactory);
+
+        _eventLoopFactoryFloat32 =
+            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<F32AlignedVector>>(
+                eventEmitterFactory);
+        _dataMultiplexerFactoryFloat32 =
+            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<F32AlignedVector>>(
+                eventEmitterFactory);
     } else {
-        createFactories(useChar, useFloat);
+        createFactories();
     }
 }
 
@@ -124,27 +124,31 @@ void StreamingFactoryProvider::setDefaultLogger(const std::string &logFileName, 
     }
 }
 
-void StreamingFactoryProvider::createFactories(bool useChar, bool useFloat)
+void StreamingFactoryProvider::createFactories()
 {
     check_license();
-    auto eventLoopPublishSubscribeFactory =
-        std::make_shared<EventLoopPublishSubscribeFactory>(_container,
-                                                           _streamingConfigurationManager.get());
-    if (useChar) {
-        _eventLoopFactoryChar =
-            std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryChar>(
-                eventLoopPublishSubscribeFactory);
-        _dataMultiplexerFactoryChar = std::make_shared<kpsr::streaming::DataMultiplexerFactoryChar>(
+    auto eventLoopFactory = std::make_shared<EventLoopFactory>(_container,
+                                                               _streamingConfigurationManager.get());
+    _eventLoopFactoryChar =
+        std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory<I8AlignedVector>>(
+            eventLoopFactory);
+    _dataMultiplexerFactoryChar =
+        std::make_shared<kpsr::streaming::DataMultiplexerPublishSubscribeFactory<I8AlignedVector>>(
             _container, _streamingConfigurationManager.get());
-    }
-    if (useFloat) {
-        _eventLoopFactoryFloat32 =
-            std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32>(
-                eventLoopPublishSubscribeFactory);
-        _dataMultiplexerFactoryFloat32 = std::make_shared<
-            kpsr::streaming::DataMultiplexerFactoryFloat32>(_container,
-                                                            _streamingConfigurationManager.get());
-    }
+
+    _dataMultiplexerFactoryUChar =
+        std::make_shared<kpsr::streaming::DataMultiplexerPublishSubscribeFactory<UI8AlignedVector>>(
+            _container, _streamingConfigurationManager.get());
+    _eventLoopFactoryUChar =
+        std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory<UI8AlignedVector>>(
+            eventLoopFactory);
+
+    _eventLoopFactoryFloat32 =
+        std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory<F32AlignedVector>>(
+            eventLoopFactory);
+    _dataMultiplexerFactoryFloat32 =
+        std::make_shared<kpsr::streaming::DataMultiplexerPublishSubscribeFactory<F32AlignedVector>>(
+            _container, _streamingConfigurationManager.get());
 }
 
 void StreamingFactoryProvider::initForEnvironment(
@@ -172,11 +176,7 @@ void StreamingFactoryProvider::initForEnvironment(
             streamingConfigurationFile);
     }
 
-    bool useChar = false;
-    environment->getPropertyBool("use_char_data", useChar);
-    bool useFloat = true;
-    environment->getPropertyBool("use_float_data", useFloat);
-    createFactories(useChar, useFloat);
+    createFactories();
 }
 
 void StreamingFactoryProvider::setDefaultStreaming(
@@ -213,28 +213,40 @@ void StreamingFactoryProvider::setDefaultStreaming(
 
 StreamingFactoryProvider::~StreamingFactoryProvider() {}
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32>
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<F32AlignedVector>>
     &StreamingFactoryProvider::getEventLoopFactoryFloat32()
 {
     return _eventLoopFactoryFloat32;
 }
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryFloat32>
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<F32AlignedVector>>
     &StreamingFactoryProvider::getDataMultiplexerFactoryFloat32()
 {
     return _dataMultiplexerFactoryFloat32;
 }
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar>
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<I8AlignedVector>>
     &StreamingFactoryProvider::getEventLoopFactoryChar()
 {
     return _eventLoopFactoryChar;
 }
 
-std::shared_ptr<kpsr::streaming::PublishSubscribeFactoryChar>
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<I8AlignedVector>>
     &StreamingFactoryProvider::getDataMultiplexerFactoryChar()
 {
     return _dataMultiplexerFactoryChar;
+}
+
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<UI8AlignedVector>>
+    &StreamingFactoryProvider::getEventLoopFactoryUChar()
+{
+    return _eventLoopFactoryUChar;
+}
+
+std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<UI8AlignedVector>>
+    &StreamingFactoryProvider::getDataMultiplexerFactoryUChar()
+{
+    return _dataMultiplexerFactoryUChar;
 }
 
 StreamingConfigurationManager *StreamingFactoryProvider::getStreamingConfigurationManager()

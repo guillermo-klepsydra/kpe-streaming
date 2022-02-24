@@ -15,104 +15,61 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-
 #include "gtest/gtest.h"
 #include <klepsydra/mem_core/mem_env.h>
 #include <klepsydra/streaming/event_emitter_factory.h>
 #include <klepsydra/streaming/stream_internal_types.h>
 
-TEST(EventEmitterFactory, EmptyFactoryTest)
+TEST(EventEmitterFactory, ConstructorTest)
 {
-    kpsr::streaming::EventEmitterFactory eventEmitterFactory;
-
-    ASSERT_EQ(eventEmitterFactory.getEventEmitter<
-                  kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>("dummy"),
-              nullptr);
+    std::shared_ptr<kpsr::streaming::EventEmitterFactory> eventEmitterFactoryInstance = nullptr;
+    ASSERT_NO_THROW(
+        eventEmitterFactoryInstance = std::make_shared<kpsr::streaming::EventEmitterFactory>(nullptr,
+                                                                                             0));
+    ASSERT_NE(eventEmitterFactoryInstance.get(), nullptr);
 }
 
-TEST(EventEmitterFactory, EmptyFactoryInsertTest)
+TEST(EventEmitterFactory, EmptyFactoryGetTest)
 {
-    kpsr::streaming::EventEmitterFactory eventEmitterFactory;
+    kpsr::streaming::EventEmitterFactory eventEmitterFactory(nullptr, 10);
 
     std::string testName = "dummy";
     int vectorSize = 10;
-    ASSERT_EQ(eventEmitterFactory.getEventEmitter<
-                  kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>(testName),
-              nullptr);
 
-    auto emitterToInsert = std::make_shared<kpsr::EventEmitterMiddlewareProvider<
-        kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>>(
-        nullptr,
-        testName,
-        10,
+    auto initializerFunctionEmitter =
         [vectorSize](kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &data) {
             data.data->resize(vectorSize);
-        },
-        nullptr);
-    std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<
-        kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>>
-        emitterToCheck;
-    ASSERT_NO_THROW(emitterToCheck = eventEmitterFactory.insertEmitter(testName, emitterToInsert));
-    ASSERT_EQ(emitterToCheck, emitterToInsert);
+        };
 
-    ASSERT_ANY_THROW(emitterToCheck = eventEmitterFactory.insertEmitter(testName, emitterToInsert));
+    ASSERT_NO_THROW(eventEmitterFactory.getEventEmitter<kpsr::streaming::DataBatchWithId<
+                        kpsr::streaming::F32AlignedVector>>(testName, initializerFunctionEmitter));
 }
 
 TEST(EventEmitterFactory, NonEmptyFactoryGetTest)
 {
-    kpsr::streaming::EventEmitterFactory eventEmitterFactory;
+    kpsr::streaming::EventEmitterFactory eventEmitterFactory(nullptr, 10);
 
     std::string testName = "dummy";
     int vectorSize = 10;
 
-    auto emitterToInsert = std::make_shared<kpsr::EventEmitterMiddlewareProvider<
-        kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>>(
-        nullptr,
-        testName,
-        10,
+    auto initializerFunctionEmitter =
         [vectorSize](kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &data) {
             data.data->resize(vectorSize);
-        },
-        nullptr);
-    ASSERT_NO_THROW(eventEmitterFactory.insertEmitter(testName, emitterToInsert));
+        };
+
+    std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<
+        kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>>
+        emitterInserted;
+    ASSERT_NO_THROW(
+        emitterInserted = eventEmitterFactory.getEventEmitter<kpsr::streaming::DataBatchWithId<
+                              kpsr::streaming::F32AlignedVector>>(testName,
+                                                                  initializerFunctionEmitter));
+
     std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<
         kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>>
         emitterToCheck;
     ASSERT_NO_THROW(
-        emitterToCheck = eventEmitterFactory.getEventEmitter<
-                         kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>(
-            testName));
-    ASSERT_EQ(emitterToCheck, emitterToInsert);
-}
-
-TEST(EventEmitterFactory, NonEmptyFactoryInsertTest)
-{
-    kpsr::streaming::EventEmitterFactory eventEmitterFactory;
-
-    std::string testName = "dummy";
-    int vectorSize = 10;
-
-    auto emitterToInsert = std::make_shared<kpsr::EventEmitterMiddlewareProvider<
-        kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>>(
-        nullptr,
-        testName,
-        10,
-        [vectorSize](kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &data) {
-            data.data->resize(vectorSize);
-        },
-        nullptr);
-    ASSERT_NO_THROW(eventEmitterFactory.insertEmitter(testName, emitterToInsert));
-
-    auto testName2 = testName + "2";
-    auto secondEmitterToInsert = std::make_shared<kpsr::EventEmitterMiddlewareProvider<
-        kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>>(
-        nullptr,
-        testName2,
-        10,
-        [vectorSize](kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &data) {
-            data.data->resize(vectorSize);
-        },
-        nullptr);
-    ASSERT_ANY_THROW(eventEmitterFactory.insertEmitter(testName, secondEmitterToInsert));
-    ASSERT_NO_THROW(eventEmitterFactory.insertEmitter(testName2, secondEmitterToInsert));
+        emitterToCheck = eventEmitterFactory.getEventEmitter<kpsr::streaming::DataBatchWithId<
+                             kpsr::streaming::F32AlignedVector>>(testName, nullptr));
+    ASSERT_EQ(emitterToCheck, emitterInserted);
 }

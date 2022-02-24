@@ -18,223 +18,157 @@
 #include <numeric>
 
 #include "gtest/gtest.h"
-#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
 #include <klepsydra/streaming/default_thread_distribution_policy.h>
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory_char.h>
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory.h>
 
-TEST(EventLoopPublishSubscribeFactoryTest, TestConstructorFactoryFloat32)
+template<typename T>
+class EventLoopPublishSubscribeFactoryTest : public testing::Test
 {
-    int poolSize = 2;
-    size_t numberOfCores = std::thread::hardware_concurrency();
-    size_t numberOfEventLoops = numberOfCores * 1;
-    size_t nonCriticalThreadPoolSize = 1;
-    int numberOfParallelThreads = 1;
-    std::vector<std::string> parallisedStreams = {};
-    auto defaultThreadDistributionPolicy =
-        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
-                                                                           numberOfEventLoops);
-    auto streamingConfigurationManager = std::make_unique<
-        kpsr::streaming::StreamingConfigurationManager>(poolSize,
-                                                        numberOfCores,
-                                                        numberOfEventLoops,
-                                                        nonCriticalThreadPoolSize,
-                                                        numberOfParallelThreads,
-                                                        parallisedStreams,
-                                                        defaultThreadDistributionPolicy);
+public:
+    EventLoopPublishSubscribeFactoryTest()
+        : parallisedStreams()
+        , poolSize(2)
+        , numberOfCores(std::thread::hardware_concurrency())
+        , numberOfEventLoops(numberOfCores * 1)
+        , nonCriticalThreadPoolSize(1)
+        , numberOfParallelThreads(1)
+        , defaultThreadDistributionPolicy(
+              std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
+                                                                                 numberOfEventLoops))
+        , streamingConfigurationManager(
+              std::make_unique<kpsr::streaming::StreamingConfigurationManager>(
+                  poolSize,
+                  numberOfCores,
+                  numberOfEventLoops,
+                  nonCriticalThreadPoolSize,
+                  numberOfParallelThreads,
+                  parallisedStreams,
+                  defaultThreadDistributionPolicy))
+        , eventLoopFactoryInstance(
+              std::make_shared<kpsr::streaming::EventLoopFactory>(nullptr,
+                                                                  streamingConfigurationManager
+                                                                      .get()))
+    {}
 
-    std::shared_ptr<kpsr::streaming::EventLoopPublishSubscribeFactory>
-        eventLoopPubSubFactoryInstance = nullptr;
-    ASSERT_NO_THROW(eventLoopPubSubFactoryInstance =
-                        std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory>(
-                            nullptr, streamingConfigurationManager.get()));
-    ASSERT_NE(eventLoopPubSubFactoryInstance.get(), nullptr);
+    std::vector<std::string> parallisedStreams;
+    int poolSize;
+    size_t numberOfCores;
+    size_t numberOfEventLoops;
+    size_t nonCriticalThreadPoolSize;
+    int numberOfParallelThreads;
+    std::shared_ptr<kpsr::streaming::DefaultThreadDistributionPolicy> defaultThreadDistributionPolicy;
+    std::unique_ptr<kpsr::streaming::StreamingConfigurationManager> streamingConfigurationManager;
+    std::shared_ptr<kpsr::streaming::EventLoopFactory> eventLoopFactoryInstance;
+};
 
-    ASSERT_NO_THROW(kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventLoopInstance(
-        eventLoopPubSubFactoryInstance));
+using TypesToTest = ::testing::Types<std::pair<kpsr::streaming::F32AlignedVector, float>,
+                                     std::pair<kpsr::streaming::I8AlignedVector, int8_t>>;
+
+TYPED_TEST_SUITE(EventLoopPublishSubscribeFactoryTest, TypesToTest);
+
+TYPED_TEST(EventLoopPublishSubscribeFactoryTest, TestConstructor)
+{
+    using TypeParamFirst = typename TypeParam::first_type;
+
+    ASSERT_NO_THROW(
+        kpsr::streaming::EventLoopPublishSubscribeFactory<TypeParamFirst> eventLoopPubSubInstance(
+            this->eventLoopFactoryInstance));
 }
 
-TEST(EventLoopPublishSubscribeFactoryTest, FactoryFloat32Test)
+TYPED_TEST(EventLoopPublishSubscribeFactoryTest, GetPublishersAndSubscribers)
 {
-    int poolSize = 2;
-    size_t numberOfCores = std::thread::hardware_concurrency();
-    size_t numberOfEventLoops = numberOfCores * 1;
-    size_t nonCriticalThreadPoolSize = 1;
-    int numberOfParallelThreads = 1;
-    std::vector<std::string> parallisedStreams = {};
-    auto defaultThreadDistributionPolicy =
-        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
-                                                                           numberOfEventLoops);
-    auto streamingConfigurationManager = std::make_unique<
-        kpsr::streaming::StreamingConfigurationManager>(poolSize,
-                                                        numberOfCores,
-                                                        numberOfEventLoops,
-                                                        nonCriticalThreadPoolSize,
-                                                        numberOfParallelThreads,
-                                                        parallisedStreams,
-                                                        defaultThreadDistributionPolicy);
-
-    auto eventLoopPubSubFactoryInstance = std::make_shared<
-        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
-                                                           streamingConfigurationManager.get());
-
-    kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventLoopInstance(
-        eventLoopPubSubFactoryInstance);
-
+    using TypeParamFirst = typename TypeParam::first_type;
     const size_t vectorSize = 3;
     const std::string publisherName = "eventLoopPublisher";
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
-        *publisher = nullptr;
-    ASSERT_NO_THROW(publisher = eventLoopInstance.getPublisherF32Aligned(publisherName, vectorSize));
+    const std::string subscriberName = "eventLoopSubscriber";
+    const std::string registerListenerName = "eventLoopListener";
+
+    kpsr::streaming::EventLoopPublishSubscribeFactory<TypeParamFirst> eventLoopPubSubInstance(
+        this->eventLoopFactoryInstance);
+
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<TypeParamFirst>> *publisher = nullptr;
+    ASSERT_NO_THROW(publisher = eventLoopPubSubInstance.getPublisher(publisherName, vectorSize));
     ASSERT_NE(publisher, nullptr);
 
-    const std::string subscriberName = "eventLoopSubscriber";
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
-        *subscriber = nullptr;
-    ASSERT_NO_THROW(
-        subscriber = eventLoopInstance.getSubscriberF32Aligned(subscriberName, vectorSize));
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<TypeParamFirst>> *subscriber = nullptr;
+    ASSERT_NO_THROW(subscriber = eventLoopPubSubInstance.getSubscriber(subscriberName, vectorSize));
     ASSERT_NE(subscriber, nullptr);
 
+    ASSERT_NO_THROW(
+        subscriber
+            ->registerListener(registerListenerName,
+                               [](const kpsr::streaming::DataBatchWithId<TypeParamFirst> &event) {
+                                   spdlog::debug("Register Listener - single subscriber");
+                               }));
+    ASSERT_NO_THROW(subscriber->removeListener(registerListenerName));
+}
+
+TYPED_TEST(EventLoopPublishSubscribeFactoryTest, GetPublishersAndSubscribersMulti)
+{
+    using TypeParamFirst = typename TypeParam::first_type;
+    const size_t vectorSize = 3;
+    const size_t multiVectorSize = 2;
+    const std::string publisherMultiName = "eventLoopPublisherMulti";
+    const std::string subscriberMultiName = "eventLoopSubscriberMulti";
     const std::string registerListenerName = "eventLoopListener";
-    ASSERT_NO_THROW(subscriber->registerListener(
+
+    kpsr::streaming::EventLoopPublishSubscribeFactory<TypeParamFirst> eventLoopPubSubInstance(
+        this->eventLoopFactoryInstance);
+
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<TypeParamFirst>>> *publisherMulti =
+        nullptr;
+    ASSERT_NO_THROW(publisherMulti = eventLoopPubSubInstance.getPublisherMulti(publisherMultiName,
+                                                                               vectorSize,
+                                                                               multiVectorSize));
+    ASSERT_NE(publisherMulti, nullptr);
+
+    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<TypeParamFirst>>>
+        *subscriberMulti = nullptr;
+    ASSERT_NO_THROW(subscriberMulti = eventLoopPubSubInstance.getSubscriberMulti(subscriberMultiName,
+                                                                                 vectorSize,
+                                                                                 multiVectorSize));
+    ASSERT_NE(subscriberMulti, nullptr);
+
+    ASSERT_NO_THROW(subscriberMulti->registerListener(
         registerListenerName,
-        [](const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &event) {
-            spdlog::debug("Register Listener Float32");
+        [](const kpsr::streaming::DataBatchWithId<std::vector<TypeParamFirst>> &event) {
+            spdlog::debug("Register Listener - multi subscriber");
         }));
-    ASSERT_NO_THROW(subscriber->removeListener(registerListenerName));
+    ASSERT_NO_THROW(subscriberMulti->removeListener(registerListenerName));
 }
 
-TEST(EventLoopPublishSubscribeFactoryTest, TestConstructorFactoryChar)
+TYPED_TEST(EventLoopPublishSubscribeFactoryTest, PublisherSubscriberTest)
 {
-    int poolSize = 2;
-    size_t numberOfCores = std::thread::hardware_concurrency();
-    size_t numberOfEventLoops = numberOfCores * 1;
-    size_t nonCriticalThreadPoolSize = 1;
-    int numberOfParallelThreads = 1;
-    std::vector<std::string> parallisedStreams = {};
-    auto defaultThreadDistributionPolicy =
-        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
-                                                                           numberOfEventLoops);
-    auto streamingConfigurationManager = std::make_unique<
-        kpsr::streaming::StreamingConfigurationManager>(poolSize,
-                                                        numberOfCores,
-                                                        numberOfEventLoops,
-                                                        nonCriticalThreadPoolSize,
-                                                        numberOfParallelThreads,
-                                                        parallisedStreams,
-                                                        defaultThreadDistributionPolicy);
+    using TypeParamFirst = typename TypeParam::first_type;
+    using TypeParamSecond = typename TypeParam::second_type;
 
-    std::shared_ptr<kpsr::streaming::EventLoopPublishSubscribeFactory>
-        eventLoopPubSubFactoryInstance = nullptr;
-    ASSERT_NO_THROW(eventLoopPubSubFactoryInstance =
-                        std::make_shared<kpsr::streaming::EventLoopPublishSubscribeFactory>(
-                            nullptr, streamingConfigurationManager.get()));
-    ASSERT_NE(eventLoopPubSubFactoryInstance.get(), nullptr);
-
-    ASSERT_NO_THROW(kpsr::streaming::EventLoopPublishSubscribeFactoryChar eventLoopInstance(
-        eventLoopPubSubFactoryInstance));
-}
-
-TEST(EventLoopPublishSubscribeFactoryTest, FactoryCharTest)
-{
-    int poolSize = 2;
-    size_t numberOfCores = std::thread::hardware_concurrency();
-    size_t numberOfEventLoops = numberOfCores * 1;
-    size_t nonCriticalThreadPoolSize = 1;
-    int numberOfParallelThreads = 1;
-    std::vector<std::string> parallisedStreams = {};
-    auto defaultThreadDistributionPolicy =
-        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
-                                                                           numberOfEventLoops);
-    auto streamingConfigurationManager = std::make_unique<
-        kpsr::streaming::StreamingConfigurationManager>(poolSize,
-                                                        numberOfCores,
-                                                        numberOfEventLoops,
-                                                        nonCriticalThreadPoolSize,
-                                                        numberOfParallelThreads,
-                                                        parallisedStreams,
-                                                        defaultThreadDistributionPolicy);
-
-    auto eventLoopPubSubFactoryInstance = std::make_shared<
-        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
-                                                           streamingConfigurationManager.get());
-
-    kpsr::streaming::EventLoopPublishSubscribeFactoryChar eventLoopInstance(
-        eventLoopPubSubFactoryInstance);
-
-    const size_t vectorSize = 3;
-    const std::string publisherName = "eventLoopPublisher";
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<std::vector<char>>> *publisher = nullptr;
-    ASSERT_NO_THROW(publisher = eventLoopInstance.getPublisherChar(publisherName, vectorSize));
-    ASSERT_NE(publisher, nullptr);
-
-    const std::string subscriberName = "eventLoopSubscriber";
-    kpsr::Subscriber<kpsr::streaming::DataBatchWithId<std::vector<char>>> *subscriber = nullptr;
-    ASSERT_NO_THROW(subscriber = eventLoopInstance.getSubscriberChar(subscriberName, vectorSize));
-    ASSERT_NE(subscriber, nullptr);
-
-    const std::string registerListenerName = "eventLoopListener";
-    ASSERT_NO_THROW(
-        subscriber->registerListener(registerListenerName,
-                                     [](const kpsr::streaming::DataBatchWithId<std::vector<char>>
-                                            &event) { spdlog::debug("Register Listener Char"); }));
-    ASSERT_NO_THROW(subscriber->removeListener(registerListenerName));
-}
-
-TEST(EventLoopPublishSubscribeFactoryTest, PublisherSubscriberTest)
-{
-    int poolSize = 2;
-    size_t numberOfCores = std::thread::hardware_concurrency();
-    size_t numberOfEventLoops = numberOfCores * 1;
-    size_t nonCriticalThreadPoolSize = 1;
-    int numberOfParallelThreads = 1;
-    std::vector<std::string> parallisedStreams = {};
-    auto defaultThreadDistributionPolicy =
-        std::make_shared<kpsr::streaming::DefaultThreadDistributionPolicy>(numberOfCores,
-                                                                           numberOfEventLoops);
-    auto streamingConfigurationManager = std::make_unique<
-        kpsr::streaming::StreamingConfigurationManager>(poolSize,
-                                                        numberOfCores,
-                                                        numberOfEventLoops,
-                                                        nonCriticalThreadPoolSize,
-                                                        numberOfParallelThreads,
-                                                        parallisedStreams,
-                                                        defaultThreadDistributionPolicy);
-
-    auto eventLoopPublishSubscribeFactory = std::make_shared<
-        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
-                                                           streamingConfigurationManager.get());
-    kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventLoopInstance(
-        eventLoopPublishSubscribeFactory);
+    kpsr::streaming::EventLoopPublishSubscribeFactory<TypeParamFirst> eventLoopPubSubInstance(
+        this->eventLoopFactoryInstance);
 
     const size_t vectorSize = 3;
     const std::string publisherName = "vector-data";
-    auto publisher = eventLoopInstance.getPublisherF32Aligned(publisherName, vectorSize);
+    auto publisher = eventLoopPubSubInstance.getPublisher(publisherName, vectorSize);
 
     const std::string subscriberName = "vector-data";
-    auto subscriber = eventLoopInstance.getSubscriberF32Aligned(subscriberName, vectorSize);
+    auto subscriber = eventLoopPubSubInstance.getSubscriber(subscriberName, vectorSize);
 
     const std::string registerListenerName = "vector-data-eventLoopListener";
-    const kpsr::streaming::F32AlignedVector expectedData = {1, 5, 8};
+    const TypeParamFirst expectedData = {TypeParamSecond(1), TypeParamSecond(5), TypeParamSecond(8)};
     bool finished = false;
-    subscriber->registerListener(
-        registerListenerName,
-        [&expectedData, &finished](
-            const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &event) {
-            spdlog::debug("Register Listener Float32");
-            for (size_t i = 0; i < event.data->size(); i++) {
-                EXPECT_EQ(expectedData.at(i), event.data->data()[i]);
-            }
-            finished = true;
-        });
+    subscriber->registerListener(registerListenerName,
+                                 [&expectedData, &finished](
+                                     const kpsr::streaming::DataBatchWithId<TypeParamFirst> &event) {
+                                     spdlog::debug("Register Listener");
+                                     EXPECT_EQ(expectedData, (*event.data));
+                                     finished = true;
+                                 });
 
-    eventLoopInstance.start();
+    eventLoopPubSubInstance.start();
 
-    auto inputDataPtr = std::make_shared<kpsr::streaming::F32AlignedVector>(
-        std::initializer_list<float>{float(1), float(5), float(8)});
+    auto inputDataPtr = std::make_shared<TypeParamFirst>(expectedData);
+
     std::thread publisherThread([&publisher, &inputDataPtr]() {
-        kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>
-            inputDataBatchWithId(0, inputDataPtr);
+        kpsr::streaming::DataBatchWithId<TypeParamFirst> inputDataBatchWithId(0, inputDataPtr);
         publisher->publish(inputDataBatchWithId);
     });
 
@@ -243,7 +177,7 @@ TEST(EventLoopPublishSubscribeFactoryTest, PublisherSubscriberTest)
     }
 
     publisherThread.join();
-    eventLoopInstance.stop();
+    eventLoopPubSubInstance.stop();
 
     subscriber->removeListener(registerListenerName);
 }

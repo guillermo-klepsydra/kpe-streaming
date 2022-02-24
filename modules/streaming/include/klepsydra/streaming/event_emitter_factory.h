@@ -15,10 +15,10 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-
 #ifndef EVENT_EMITTER_FACTORY_H
 #define EVENT_EMITTER_FACTORY_H
 
+#include <klepsydra/core/container.h>
 #include <map>
 #include <string>
 
@@ -31,17 +31,22 @@ namespace streaming {
 class EventEmitterFactory
 {
 public:
-    EventEmitterFactory() {}
+    EventEmitterFactory(kpsr::Container *container, int poolSize)
+        : _container(container)
+        , _poolSize(poolSize)
+    {}
 
-    ~EventEmitterFactory() {}
+    virtual ~EventEmitterFactory() { _container = nullptr; }
 
     template<class T>
     std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> getEventEmitter(
-        const std::string &stepName)
+        const std::string &stepName, const std::function<void(T &)> initializerFunction)
     {
         auto stepIt = _eventemitterMap.find(stepName);
         if (stepIt == _eventemitterMap.end()) {
-            return nullptr;
+            return insertEmitter(stepName,
+                                 std::make_shared<kpsr::EventEmitterMiddlewareProvider<T>>(
+                                     _container, stepName, _poolSize, initializerFunction, nullptr));
         } else {
             auto internalPtr = stepIt->second;
             auto emitterToReturn = std::static_pointer_cast<kpsr::EventEmitterMiddlewareProvider<T>>(
@@ -50,14 +55,19 @@ public:
         }
     }
 
+protected:
+    kpsr::Container *_container;
+    int _poolSize;
+
+private:
+    std::map<std::string, std::shared_ptr<void>> _eventemitterMap;
+
     template<class T>
     std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> insertEmitter(
         const std::string &stepName,
         std::shared_ptr<kpsr::EventEmitterMiddlewareProvider<T>> emitter)
     {
-        spdlog::debug(
-            "EventEmitterPublishSubscribeFactory::getEventEmitter: new instance, stepName: {}",
-            stepName);
+        spdlog::debug("EventEmitterFactory::getEventEmitter: new instance, stepName: {}", stepName);
         auto insertResult = _eventemitterMap.insert(
             std::make_pair(stepName, std::static_pointer_cast<void>(emitter)));
         if (!insertResult.second) {
@@ -65,10 +75,8 @@ public:
         }
         return emitter;
     }
-
-private:
-    std::map<std::string, std::shared_ptr<void>> _eventemitterMap;
 };
 } // namespace streaming
 } // namespace kpsr
-#endif
+
+#endif // EVENT_EMITTER_FACTORY_H

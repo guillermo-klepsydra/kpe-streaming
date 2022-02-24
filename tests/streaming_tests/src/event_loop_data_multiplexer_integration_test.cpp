@@ -15,12 +15,14 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
+
+#include <klepsydra/streaming/data_multiplexer_publish_subscribe_factory.h>
+#include <klepsydra/streaming/default_thread_distribution_policy.h>
+#include <klepsydra/streaming/event_loop_publish_subscribe_factory.h>
+
 #include <numeric>
 
 #include "gtest/gtest.h"
-#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
-#include <klepsydra/streaming/default_thread_distribution_policy.h>
-#include <klepsydra/streaming/event_loop_publish_subscribe_factory_float32.h>
 
 TEST(EventLoopDataMultiplexerPublishSubscribeFactoryTest, IntegrationTest)
 {
@@ -28,14 +30,13 @@ TEST(EventLoopDataMultiplexerPublishSubscribeFactoryTest, IntegrationTest)
     int data_sent_ctr = 0;
     std::vector<int> data_received_ctr(num_listeners, 0);
 
-    kpsr::streaming::DataMultiplexerFactoryFloat32 dataMultiplexerInstance(nullptr, nullptr);
+    kpsr::streaming::DataMultiplexerPublishSubscribeFactory<kpsr::streaming::F32AlignedVector>
+        dataMultiplexerInstance(nullptr, nullptr);
 
-    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>> *
-        dataMultiplexerPublisher = dataMultiplexerInstance.getPublisherF32Aligned("dataMultiplexer",
-                                                                                  3);
+    kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
+        *dataMultiplexerPublisher = dataMultiplexerInstance.getPublisher("dataMultiplexer", 3);
     kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
-        *dataMultiplexerSubscriber =
-            dataMultiplexerInstance.getSubscriberF32Aligned("dataMultiplexer", 3);
+        *dataMultiplexerSubscriber = dataMultiplexerInstance.getSubscriber("dataMultiplexer", 3);
 
     int poolSize = 2;
     size_t numberOfCores = std::thread::hardware_concurrency();
@@ -55,22 +56,21 @@ TEST(EventLoopDataMultiplexerPublishSubscribeFactoryTest, IntegrationTest)
                                                         parallisedSteps,
                                                         defaultThreadDistributionPolicy);
 
-    auto eventLoopPublishSubscribeFactory = std::make_shared<
-        kpsr::streaming::EventLoopPublishSubscribeFactory>(nullptr,
-                                                           streamingConfigurationManager.get());
-    kpsr::streaming::EventLoopPublishSubscribeFactoryFloat32 eventloopInstance(
-        eventLoopPublishSubscribeFactory);
+    auto eventLoopFactory =
+        std::make_shared<kpsr::streaming::EventLoopFactory>(nullptr,
+                                                            streamingConfigurationManager.get());
+    kpsr::streaming::EventLoopPublishSubscribeFactory<kpsr::streaming::F32AlignedVector>
+        eventloopInstance(eventLoopFactory);
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         dataMultiplexerSubscriber->registerListener(
             "dataMultiplexer_" + std::to_string(i),
             [i, &eventloopInstance](
                 const kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector> &event) {
-                eventloopInstance.getPublisherF32Aligned("eventloop_" + std::to_string(i), 3)
-                    ->publish(event);
+                eventloopInstance.getPublisher("eventloop_" + std::to_string(i), 3)->publish(event);
             });
 
-        eventloopInstance.getSubscriberF32Aligned("eventloop_" + std::to_string(i), 3)
+        eventloopInstance.getSubscriber("eventloop_" + std::to_string(i), 3)
             ->registerListener("data_received_ctr_" + std::to_string(i),
                                [i, &data_received_ctr](const kpsr::streaming::DataBatchWithId<
                                                        kpsr::streaming::F32AlignedVector> &event) {
@@ -98,7 +98,7 @@ TEST(EventLoopDataMultiplexerPublishSubscribeFactoryTest, IntegrationTest)
 
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         dataMultiplexerSubscriber->removeListener("dataMultiplexer_" + std::to_string(i));
-        eventloopInstance.getSubscriberF32Aligned("eventloop_" + std::to_string(i), 3)
+        eventloopInstance.getSubscriber("eventloop_" + std::to_string(i), 3)
             ->removeListener("data_received_ctr_" + std::to_string(i));
     }
 

@@ -16,56 +16,71 @@
 *
 *****************************************************************************/
 
-#ifndef PUBLISH_SUBCRIBE_EVENTLOOP_FACTORY_H
-#define PUBLISH_SUBCRIBE_EVENTLOOP_FACTORY_H
+#ifndef EVENTLOOP_PUBLISH_SUBSCRIBE_FACTORY_H
+#define EVENTLOOP_PUBLISH_SUBSCRIBE_FACTORY_H
 
-#include <klepsydra/admin/container_utils.h>
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
-#include <klepsydra/streaming/streaming_configuration_manager.h>
+
+#include <klepsydra/streaming/event_loop_factory.h>
+#include <klepsydra/streaming/publish_subscribe_factory.h>
 
 namespace kpsr {
 namespace streaming {
+template<class TypeValue>
 
-const int EVENT_LOOP_SIZE = 32;
-
-using FactoryEventLoopType = kpsr::high_performance::EventLoopMiddlewareProvider<EVENT_LOOP_SIZE>;
-using EventLoopPtr = std::shared_ptr<FactoryEventLoopType>;
-
-class EventLoopPublishSubscribeFactory
+class EventLoopPublishSubscribeFactory : public PublishSubscribeFactory<TypeValue>
 {
 public:
-    EventLoopPublishSubscribeFactory(kpsr::Container *container,
-                                     StreamingConfigurationManager *streamingConfigurationManager);
+    EventLoopPublishSubscribeFactory(std::shared_ptr<EventLoopFactory> &eventLoopFactory)
+        : kpsr::Service(nullptr, "EventLoopPubSubFactoryService")
+        , _eventLoopFactory(eventLoopFactory)
+    {}
 
-    virtual ~EventLoopPublishSubscribeFactory();
+    virtual ~EventLoopPublishSubscribeFactory() {}
 
-    const std::vector<EventLoopPtr> getEventLoops();
-
-    const StreamingConfigurationManager *getStreamingConfigurationManager();
-
-    void start();
-    void stop();
-
-    template<class T>
-    kpsr::Subscriber<T> *getSubscriber(const std::string &stepName)
+    virtual kpsr::Publisher<DataBatchWithId<TypeValue>> *getPublisher(
+        const std::string &stepName, const size_t vectorSize) override
     {
-        spdlog::debug("EventLoopPublishSubscribeFactory::getSubscriber: stepName: {}", stepName);
-        auto eventLoopName = kpsr::admin::ContainerUtils::escapedNameForOpenMct(stepName);
-        auto eventLoopPtr = getEventLoop(eventLoopName);
-        return eventLoopPtr->template getSubscriber<T>(eventLoopName);
+        return _eventLoopFactory
+            ->getPublisher<DataBatchWithId<TypeValue>>(stepName,
+                                                       [vectorSize](
+                                                           DataBatchWithId<TypeValue> &data) {
+                                                           data.data->resize(vectorSize);
+                                                       });
     }
 
-    EventLoopPtr getEventLoop(const std::string &eventLoopName);
+    virtual kpsr::Subscriber<DataBatchWithId<TypeValue>> *getSubscriber(
+        const std::string &stepName, const size_t vectorSize) override
+    {
+        return _eventLoopFactory->getSubscriber<DataBatchWithId<TypeValue>>(stepName);
+    }
 
-    int getPoolSize() const;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<TypeValue>>> *getPublisherMulti(
+        const std::string &stepName, const size_t vectorSize, const size_t multiVectorSize) override
+    {
+        return _eventLoopFactory->getPublisher<DataBatchWithId<std::vector<TypeValue>>>(
+            stepName, [multiVectorSize, vectorSize](DataBatchWithId<std::vector<TypeValue>> &data) {
+                data.data->resize(multiVectorSize);
+                for (auto &d : *data.data) {
+                    d.resize(vectorSize);
+                }
+            });
+    }
+
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<TypeValue>>> *getSubscriberMulti(
+        const std::string &stepName, const size_t vectorSize, const size_t multiVectorSize) override
+    {
+        return _eventLoopFactory->getSubscriber<DataBatchWithId<std::vector<TypeValue>>>(stepName);
+    }
+
+    virtual void start() override { _eventLoopFactory->start(); }
+
+    virtual void stop() override { _eventLoopFactory->stop(); }
 
 private:
-    kpsr::Container *_container;
-    StreamingConfigurationManager *_streamingConfigurationManager;
-    int _poolSize;
-    std::vector<EventLoopPtr> _eventLoops;
+    std::shared_ptr<EventLoopFactory> _eventLoopFactory;
 };
 } // namespace streaming
 } // namespace kpsr
 
-#endif // PUBLISH_SUBCRIBE_EVENTLOOP_FACTORY_H
+#endif // EVENTLOOP_PUBLISH_SUBSCRIBE_FACTORY_H

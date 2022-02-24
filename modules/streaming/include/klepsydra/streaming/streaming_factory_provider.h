@@ -20,10 +20,7 @@
 #define __STREAMING_FACTORY_PARSER_H__
 
 #include <klepsydra/core/container.h>
-#include <klepsydra/streaming/data_multiplexer_factory_char.h>
-#include <klepsydra/streaming/data_multiplexer_factory_float32.h>
-#include <klepsydra/streaming/publish_subscribe_factory_char.h>
-#include <klepsydra/streaming/publish_subscribe_factory_float32.h>
+#include <klepsydra/streaming/publish_subscribe_factory.h>
 #include <klepsydra/streaming/streaming_configuration_manager.h>
 #include <klepsydra/streaming/thread_distribution_policy_factory.h>
 #include <klepsydra/streaming/visibility.h>
@@ -35,9 +32,7 @@ class StreamingFactoryProvider
 {
 public:
     StreamingFactoryProvider(ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
-                             bool testDNN,
-                             bool useChar,
-                             bool useFloat);
+                             bool testDNN);
     StreamingFactoryProvider(ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
                              const std::string &envFileName,
                              kpsr::Container *container = nullptr);
@@ -47,10 +42,12 @@ public:
 
     virtual ~StreamingFactoryProvider();
 
-    std::shared_ptr<PublishSubscribeFactoryFloat32> &getEventLoopFactoryFloat32();
-    std::shared_ptr<PublishSubscribeFactoryChar> &getEventLoopFactoryChar();
-    std::shared_ptr<PublishSubscribeFactoryFloat32> &getDataMultiplexerFactoryFloat32();
-    std::shared_ptr<PublishSubscribeFactoryChar> &getDataMultiplexerFactoryChar();
+    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> &getEventLoopFactoryFloat32();
+    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> &getEventLoopFactoryChar();
+    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> &getEventLoopFactoryUChar();
+    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> &getDataMultiplexerFactoryFloat32();
+    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> &getDataMultiplexerFactoryChar();
+    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> &getDataMultiplexerFactoryUChar();
 
     StreamingConfigurationManager *getStreamingConfigurationManager();
 
@@ -65,17 +62,19 @@ private:
     void setDefaultStreaming(ThreadDistributionPolicyFactory *threadDistributionPolicyFactory,
                              kpsr::Environment *environment);
 
-    void createFactories(bool useChar, bool useFloat);
+    void createFactories();
 
     std::unique_ptr<StreamingConfigurationManager> _streamingConfigurationManager;
     kpsr::Container *_container;
 
     std::vector<std::string> _procIntensiveStreams;
 
-    std::shared_ptr<PublishSubscribeFactoryFloat32> _eventLoopFactoryFloat32;
-    std::shared_ptr<PublishSubscribeFactoryChar> _eventLoopFactoryChar;
-    std::shared_ptr<PublishSubscribeFactoryFloat32> _dataMultiplexerFactoryFloat32;
-    std::shared_ptr<PublishSubscribeFactoryChar> _dataMultiplexerFactoryChar;
+    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> _eventLoopFactoryFloat32;
+    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> _eventLoopFactoryChar;
+    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> _eventLoopFactoryUChar;
+    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> _dataMultiplexerFactoryFloat32;
+    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> _dataMultiplexerFactoryChar;
+    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> _dataMultiplexerFactoryUChar;
 };
 } // namespace streaming
 } // namespace kpsr

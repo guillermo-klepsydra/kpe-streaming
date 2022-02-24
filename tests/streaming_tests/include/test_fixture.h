@@ -27,7 +27,7 @@ class StreamingFactoryProviderDefault : public testing::TestWithParam<bool>
 protected:
     StreamingFactoryProviderDefault()
         : defaultThreadDistributionPolicyFactoryImpl()
-        , sut(&defaultThreadDistributionPolicyFactoryImpl, GetParam(), false, true)
+        , sut(&defaultThreadDistributionPolicyFactoryImpl, GetParam())
     {}
     // @TODO: Add tests for the case of useChar = true.
     kpsr::streaming::DefaultThreadDistributionPolicyFactoryImpl

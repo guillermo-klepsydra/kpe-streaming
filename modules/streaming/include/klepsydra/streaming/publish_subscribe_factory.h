@@ -25,30 +25,26 @@
 #include <klepsydra/streaming/stream_internal_types.h>
 #include <klepsydra/streaming/streaming_types.h>
 
+#include <spdlog/spdlog.h>
+
 namespace kpsr {
 namespace streaming {
+template<class TypeValue>
 
-class PublishSubscribeFactoryFloat32 : virtual public kpsr::Service
+class PublishSubscribeFactory : virtual public kpsr::Service
 {
 public:
-    virtual kpsr::Publisher<DataBatchWithId<F32AlignedVector>> *getPublisherF32Aligned(
-        const std::string &stepName, const size_t vectorSize) = 0;
-    virtual kpsr::Subscriber<DataBatchWithId<F32AlignedVector>> *getSubscriberF32Aligned(
+    virtual kpsr::Publisher<DataBatchWithId<TypeValue>> *getPublisher(const std::string &stepName,
+                                                                      const size_t vectorSize) = 0;
+    virtual kpsr::Subscriber<DataBatchWithId<TypeValue>> *getSubscriber(
         const std::string &stepName, const size_t vectorSize = 0) = 0;
 
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<F32AlignedVector>>>
-        *getPublisherMultiF32Aligned(const std::string &stepName,
-                                     const size_t vectorSize,
-                                     const size_t multiVectorSize) = 0;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<F32AlignedVector>>>
-        *getSubscriberMultiF32Aligned(const std::string &stepName,
-                                      const size_t vectorSize = 0,
-                                      const size_t multiVectorSize = 1) = 0;
-
-    virtual kpsr::Publisher<DataBatchWithId<std::vector<float>>> *getPublisherF32(
-        const std::string &stepName, const size_t vectorSize) = 0;
-    virtual kpsr::Subscriber<DataBatchWithId<std::vector<float>>> *getSubscriberF32(
-        const std::string &stepName, const size_t vectorSize = 0) = 0;
+    virtual kpsr::Publisher<DataBatchWithId<std::vector<TypeValue>>> *getPublisherMulti(
+        const std::string &stepName, const size_t vectorSize, const size_t multiVectorSize) = 0;
+    virtual kpsr::Subscriber<DataBatchWithId<std::vector<TypeValue>>> *getSubscriberMulti(
+        const std::string &stepName,
+        const size_t vectorSize = 0,
+        const size_t multiVectorSize = 1) = 0;
 
 protected:
     virtual void execute() override {}
