@@ -203,7 +203,7 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestFloat)
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         auto listenerName = "data_received_ctr_" + std::to_string(i);
         discardedMessages[i] = dataMultiplexerSubscriber->getSubscriptionStats(listenerName)
-                                   ->_totalDiscardedEvents;
+                                   ->totalDiscardedEvents;
         dataMultiplexerSubscriber->removeListener(listenerName);
     }
 
@@ -258,7 +258,7 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestChar)
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         auto listenerName = "data_received_ctr_" + std::to_string(i);
         discardedMessages[i] = dataMultiplexerSubscriber->getSubscriptionStats(listenerName)
-                                   ->_totalDiscardedEvents;
+                                   ->totalDiscardedEvents;
         dataMultiplexerSubscriber->removeListener(listenerName);
     }
 
@@ -313,7 +313,7 @@ TEST_P(DataMultiplexerFactoryTest, SimpleTestUChar)
     for (size_t i = 0; i < data_received_ctr.size(); i++) {
         auto listenerName = "data_received_ctr_" + std::to_string(i);
         discardedMessages[i] = dataMultiplexerSubscriber->getSubscriptionStats(listenerName)
-                                   ->_totalDiscardedEvents;
+                                   ->totalDiscardedEvents;
         dataMultiplexerSubscriber->removeListener(listenerName);
     }
 
