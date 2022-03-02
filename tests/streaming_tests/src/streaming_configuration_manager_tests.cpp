@@ -151,6 +151,60 @@ TEST(StreamingConfigurationManager, ConstructionWithDefaultPolicyWithIrregularDi
     }
 }
 
+TEST(StreamingConfigurationManager, ConstructionFromJsonFile)
+{
+    const std::string jsonFileName = std::string(TEST_DATA) + "/streaming_conf.json";
+    std::unique_ptr<kpsr::streaming::StreamingConfigurationManager>
+        dummyStreamingConfigurationManager;
+    ASSERT_NO_THROW(
+        dummyStreamingConfigurationManager =
+            std::make_unique<kpsr::streaming::StreamingConfigurationManager>(jsonFileName));
+
+    ASSERT_EQ(0, dummyStreamingConfigurationManager->getStreamingConfiguration().poolSize);
+    ASSERT_EQ(2, dummyStreamingConfigurationManager->getStreamingConfiguration().numberOfCores);
+    ASSERT_EQ(32,
+              dummyStreamingConfigurationManager->getStreamingConfiguration()
+                  .nonCriticalThreadPoolSize);
+    ASSERT_EQ(0,
+              dummyStreamingConfigurationManager->getStreamingConfiguration()
+                  .numberOfParallelThreads);
+    ASSERT_EQ(4, dummyStreamingConfigurationManager->getStreamingConfiguration().numberOfEventLoops);
+
+    const std::vector<std::pair<size_t, int>> expectedIdEventLoop = {std::make_pair(0, 0),
+                                                                     std::make_pair(1, 1),
+                                                                     std::make_pair(2, 1)};
+    const std::vector<std::pair<std::string, size_t>> expectedStepIDEventLoopMap =
+        {std::make_pair("1", 3),
+         std::make_pair("2", 3),
+         std::make_pair("3", 2),
+         std::make_pair("4", 3),
+         std::make_pair("5", 2),
+         std::make_pair("6", 1),
+         std::make_pair("7", 3),
+         std::make_pair("8", 2),
+         std::make_pair("fifth", 0),
+         std::make_pair("first", 0),
+         std::make_pair("fourth", 3),
+         std::make_pair("second", 1),
+         std::make_pair("sixth", 1),
+         std::make_pair("third", 2)};
+    int ctrPos = 0;
+    for (const auto &eventLoopCoreMap :
+         dummyStreamingConfigurationManager->getThreadDistributionPolicy()->eventLoopCoreMap) {
+        ASSERT_EQ(eventLoopCoreMap.first, expectedIdEventLoop.at(ctrPos).first);
+        ASSERT_EQ(eventLoopCoreMap.second.at(0), expectedIdEventLoop.at(ctrPos).second);
+        ctrPos++;
+    }
+
+    ctrPos = 0;
+    for (const auto &stepIDEventLoopMap :
+         dummyStreamingConfigurationManager->getThreadDistributionPolicy()->stepIDEventLoopMap) {
+        ASSERT_EQ(stepIDEventLoopMap.first, expectedStepIDEventLoopMap.at(ctrPos).first);
+        ASSERT_EQ(stepIDEventLoopMap.second, expectedStepIDEventLoopMap.at(ctrPos).second);
+        ctrPos++;
+    }
+}
+
 TEST(StreamingConfigurationManager, JsonExportTest)
 {
     int poolSize = 0;

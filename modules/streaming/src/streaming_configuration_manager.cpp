@@ -142,6 +142,11 @@ bool StreamingConfigurationManager::operator==(const StreamingConfigurationManag
         return false;
     }
 
+    if (this->_streamingConfiguration.nonCriticalThreadPoolSize !=
+        rhs.getStreamingConfiguration().nonCriticalThreadPoolSize) {
+        return false;
+    }
+
     if (this->_threadDistributionPolicy->eventLoopCoreMap !=
         rhs.getThreadDistributionPolicy()->eventLoopCoreMap) {
         return false;
@@ -186,6 +191,8 @@ void StreamingConfigurationManager::serialize(Archive &archive)
             cereal::make_nvp(NUMBER_OF_EVENT_LOOPS, _streamingConfiguration.numberOfEventLoops),
             cereal::make_nvp(NUMBER_OF_PARALLEL_THREADS,
                              _streamingConfiguration.numberOfParallelThreads),
+            cereal::make_nvp(NON_CRITICAL_THREAD_POOL_SIZE,
+                             _streamingConfiguration.nonCriticalThreadPoolSize),
             cereal::make_nvp(EVENT_LOOP_CORE_MAP, _threadDistributionPolicy->eventLoopCoreMap),
             cereal::make_nvp(LAYER_EVENT_LOOP_MAP, _threadDistributionPolicy->stepIDEventLoopMap),
             cereal::make_nvp(PARALLISED_LAYERS, _streamingConfiguration.parallelisedSteps));

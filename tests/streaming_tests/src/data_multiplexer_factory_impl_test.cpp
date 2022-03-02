@@ -16,16 +16,18 @@
 *
 *****************************************************************************/
 #include <klepsydra/streaming/default_thread_distribution_policy.h>
+#include <klepsydra/streaming/json_thread_distribution_policy.h>
 #include <klepsydra/streaming/streaming_configuration_manager.h>
 
 #include <klepsydra/streaming/data_multiplexer_publish_subscribe_factory.h>
 
 #include <numeric>
 
+#include "config.h"
 #include "gtest/gtest.h"
 #include <klepsydra/mem_core/mem_env.h>
 
-using TestTuple = std::tuple<kpsr::Container *, bool>;
+using TestTuple = std::tuple<kpsr::Container *, size_t>;
 
 class DataMultiplexerFactoryTest : public ::testing::TestWithParam<TestTuple>
 {
@@ -44,9 +46,16 @@ protected:
     {}
     virtual void SetUp()
     {
-        bool isNullStreaming;
-        std::tie(container, isNullStreaming) = GetParam();
-        if (isNullStreaming) {
+        size_t typeOfStreaming;
+        std::tie(container, typeOfStreaming) = GetParam();
+
+        switch (typeOfStreaming) {
+        case 0: {
+            spdlog::debug("Streaming Configuration Manager is nullptr");
+            break;
+        }
+        case 1: {
+            spdlog::debug("Streaming Configuration Manager with default policy");
             streamingConfigurationManager = std::make_unique<
                 kpsr::streaming::StreamingConfigurationManager>(poolSize,
                                                                 numberOfCores,
@@ -55,10 +64,24 @@ protected:
                                                                 numberOfParallelThreads,
                                                                 parallisedStreams,
                                                                 defaultThreadDistributionPolicy);
+            break;
+        }
+        case 2: {
+            spdlog::debug("Streaming Configuration Manager with json policy");
+            std::string jsonFileName = std::string(TEST_DATA) + "/streaming_conf.json";
+            streamingConfigurationManager =
+                std::make_unique<kpsr::streaming::StreamingConfigurationManager>(jsonFileName);
+            break;
+        }
+        default: {
+            spdlog::debug("Streaming Configuration Manager is nullptr");
+            break;
+        }
         }
     }
 
     virtual void TearDown() { container = nullptr; }
+
     kpsr::Container *container;
     int poolSize;
     size_t numberOfCores;
@@ -76,7 +99,7 @@ kpsr::Container testContainer(&testEnvironment, "TestEnvironment");
 INSTANTIATE_TEST_SUITE_P(DataMultiplexerFactoryTests,
                          DataMultiplexerFactoryTest,
                          ::testing::Combine(::testing::Values(nullptr, &testContainer),
-                                            ::testing::Bool()));
+                                            ::testing::Values(0, 1, 2)));
 
 TEST_P(DataMultiplexerFactoryTest, ConstructorTest)
 {

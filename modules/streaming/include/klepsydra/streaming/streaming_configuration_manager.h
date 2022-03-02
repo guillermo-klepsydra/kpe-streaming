@@ -39,6 +39,7 @@ const std::string POOL_SIZE = "pool_size";
 const std::string NUMBER_OF_CORES = "number_of_cores";
 const std::string NUMBER_OF_EVENT_LOOPS = "number_of_event_loops";
 const std::string NUMBER_OF_PARALLEL_THREADS = "number_of_parallel_threads";
+const std::string NON_CRITICAL_THREAD_POOL_SIZE = "non_critical_thread_pool_size";
 const std::string EVENT_LOOP_CORE_MAP = "event_loop_core_map";
 const std::string LAYER_EVENT_LOOP_MAP = "layer_event_loop_map";
 const std::string PARALLISED_LAYERS = "parallised_layers";
