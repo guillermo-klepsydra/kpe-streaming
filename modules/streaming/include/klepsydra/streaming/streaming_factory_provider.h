@@ -28,6 +28,10 @@
 namespace kpsr {
 namespace streaming {
 
+const int TEST_POOL_SIZE = 1;
+const size_t TEST_NON_CRITICAL_THREAD_POOL_SIZE = 1;
+const size_t TEST_NUMBER_OF_PARALLEL_THREADS = 1;
+
 class StreamingFactoryProvider
 {
 public:
@@ -63,6 +67,8 @@ private:
                              kpsr::Environment *environment);
 
     void createFactories();
+
+    void createTestFactories();
 
     std::unique_ptr<StreamingConfigurationManager> _streamingConfigurationManager;
     kpsr::Container *_container;

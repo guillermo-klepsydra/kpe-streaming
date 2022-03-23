@@ -41,35 +41,21 @@ StreamingFactoryProvider::StreamingFactoryProvider(
     , _eventLoopFactoryFloat32(nullptr)
     , _eventLoopFactoryChar(nullptr)
 {
-    size_t numberOfCores = std::thread::hardware_concurrency();
-    size_t numberOfEventLoops = numberOfCores * 1;
     auto threadDistributionPolicy = threadDistributionPolicyFactory->createThreadDistributionPolicy();
+    size_t numberOfEventLoops = threadDistributionPolicy->eventLoopCoreMap.size();
+    size_t numberOfCores = numberOfEventLoops;
     std::vector<std::string> parallisedLayers = {};
-    _streamingConfigurationManager = std::make_unique<StreamingConfigurationManager>(
-        4, numberOfCores, numberOfEventLoops, 4, 1, parallisedLayers, threadDistributionPolicy);
+    _streamingConfigurationManager =
+        std::make_unique<StreamingConfigurationManager>(TEST_POOL_SIZE,
+                                                        numberOfCores,
+                                                        numberOfEventLoops,
+                                                        TEST_NON_CRITICAL_THREAD_POOL_SIZE,
+                                                        TEST_NUMBER_OF_PARALLEL_THREADS,
+                                                        parallisedLayers,
+                                                        threadDistributionPolicy);
+
     if (testDNN) {
-        auto eventEmitterFactory = std::make_shared<EventEmitterFactory>(_container, 10);
-        setDefaultLogger();
-        _eventLoopFactoryChar =
-            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<I8AlignedVector>>(
-                eventEmitterFactory);
-        _dataMultiplexerFactoryChar =
-            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<I8AlignedVector>>(
-                eventEmitterFactory);
-
-        _eventLoopFactoryUChar =
-            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<UI8AlignedVector>>(
-                eventEmitterFactory);
-        _dataMultiplexerFactoryUChar =
-            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<UI8AlignedVector>>(
-                eventEmitterFactory);
-
-        _eventLoopFactoryFloat32 =
-            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<F32AlignedVector>>(
-                eventEmitterFactory);
-        _dataMultiplexerFactoryFloat32 =
-            std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<F32AlignedVector>>(
-                eventEmitterFactory);
+        createTestFactories();
     } else {
         createFactories();
     }
@@ -151,6 +137,34 @@ void StreamingFactoryProvider::createFactories()
             _container, _streamingConfigurationManager.get());
 }
 
+void StreamingFactoryProvider::createTestFactories()
+{
+    int poolSize = _streamingConfigurationManager->getStreamingConfiguration().poolSize;
+    auto eventEmitterFactory = std::make_shared<EventEmitterFactory>(_container, poolSize);
+
+    setDefaultLogger();
+    _eventLoopFactoryChar =
+        std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<I8AlignedVector>>(
+            eventEmitterFactory);
+    _dataMultiplexerFactoryChar =
+        std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<I8AlignedVector>>(
+            eventEmitterFactory);
+
+    _eventLoopFactoryUChar =
+        std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<UI8AlignedVector>>(
+            eventEmitterFactory);
+    _dataMultiplexerFactoryUChar =
+        std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<UI8AlignedVector>>(
+            eventEmitterFactory);
+
+    _eventLoopFactoryFloat32 =
+        std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<F32AlignedVector>>(
+            eventEmitterFactory);
+    _dataMultiplexerFactoryFloat32 =
+        std::make_shared<kpsr::streaming::EventEmitterPublishSubscribeFactory<F32AlignedVector>>(
+            eventEmitterFactory);
+}
+
 void StreamingFactoryProvider::initForEnvironment(
     ThreadDistributionPolicyFactory *threadDistributionPolicyFactory, kpsr::Environment *environment)
 {
@@ -176,7 +190,13 @@ void StreamingFactoryProvider::initForEnvironment(
             streamingConfigurationFile);
     }
 
-    createFactories();
+    bool testDNN = false;
+    environment->getPropertyBool("test_dnn", testDNN);
+    if (testDNN) {
+        createTestFactories();
+    } else {
+        createFactories();
+    }
 }
 
 void StreamingFactoryProvider::setDefaultStreaming(
