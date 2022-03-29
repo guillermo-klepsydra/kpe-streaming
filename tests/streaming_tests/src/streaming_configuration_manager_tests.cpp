@@ -84,20 +84,26 @@ TEST(StreamingConfigurationManager, ConstructionWithDefaultPolicyWithRegularDist
     }
 
     const std::vector<size_t> expectedIdEventLoop = {0, 1};
-    const std::vector<int> expectedIdCore = {0, 1};
+    const std::vector<int> expectedCoreId = {0, 1};
     int ctrPos = 0;
     for (auto eventLoopCoreMap :
          streamingConfigurationManager.getThreadDistributionPolicy()->eventLoopCoreMap) {
         ASSERT_EQ(eventLoopCoreMap.first, expectedIdEventLoop.at(ctrPos));
-        ASSERT_EQ(eventLoopCoreMap.second.at(0), expectedIdCore.at(ctrPos));
+        ASSERT_EQ(eventLoopCoreMap.second.at(0), expectedCoreId.at(ctrPos));
         ctrPos++;
+    }
+
+    std::vector<kpsr::streaming::EventLoopIdAndFactoryInfo> expectedEventLoopAndFactoryInfo(
+        numberOfSteps);
+    for (size_t i = 0; i < numberOfSteps; i++) {
+        expectedEventLoopAndFactoryInfo.at(i).coreId = expectedIdEventLoop.at(i % 2);
     }
 
     ctrPos = 0;
     for (auto stepIDEventLoopMap :
          streamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap) {
         ASSERT_EQ(stepIDEventLoopMap.first, "step-" + std::to_string(ctrPos));
-        ASSERT_EQ(stepIDEventLoopMap.second, expectedIdEventLoop.at(ctrPos % 2));
+        ASSERT_EQ(stepIDEventLoopMap.second, expectedEventLoopAndFactoryInfo.at(ctrPos));
         ctrPos++;
     }
 }
@@ -133,20 +139,26 @@ TEST(StreamingConfigurationManager, ConstructionWithDefaultPolicyWithIrregularDi
     }
 
     const std::vector<size_t> expectedIdEventLoop = {0, 1, 2, 0, 1, 2, 0, 1};
-    const std::vector<int> expectedIdCore = {0, 1, 2};
+    const std::vector<int> expectedCoreId = {0, 1, 2};
     int ctrPos = 0;
     for (auto eventLoopCoreMap :
          streamingConfigurationManager.getThreadDistributionPolicy()->eventLoopCoreMap) {
         ASSERT_EQ(eventLoopCoreMap.first, expectedIdEventLoop.at(ctrPos));
-        ASSERT_EQ(eventLoopCoreMap.second.at(0), expectedIdCore.at(ctrPos));
+        ASSERT_EQ(eventLoopCoreMap.second.at(0), expectedCoreId.at(ctrPos));
         ctrPos++;
+    }
+
+    std::vector<kpsr::streaming::EventLoopIdAndFactoryInfo> expectedEventLoopAndFactoryInfo(
+        numberOfSteps);
+    for (size_t i = 0; i < numberOfSteps; i++) {
+        expectedEventLoopAndFactoryInfo.at(i).coreId = expectedIdEventLoop.at(i);
     }
 
     ctrPos = 0;
     for (auto stepIDEventLoopMap :
          streamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap) {
         ASSERT_EQ(stepIDEventLoopMap.first, "step-" + std::to_string(ctrPos));
-        ASSERT_EQ(stepIDEventLoopMap.second, expectedIdEventLoop.at(ctrPos));
+        ASSERT_EQ(stepIDEventLoopMap.second, expectedEventLoopAndFactoryInfo.at(ctrPos));
         ctrPos++;
     }
 }
@@ -173,6 +185,15 @@ TEST(StreamingConfigurationManager, ConstructionFromJsonFile)
     const std::vector<std::pair<size_t, int>> expectedIdEventLoop = {std::make_pair(0, 0),
                                                                      std::make_pair(1, 1),
                                                                      std::make_pair(2, 1)};
+
+    const size_t numberOfSteps = 14;
+    const std::vector<size_t> expectedCoreId = {3, 3, 2, 3, 2, 1, 3, 2, 0, 0, 3, 1, 1, 2};
+    std::vector<kpsr::streaming::EventLoopIdAndFactoryInfo> expectedEventLoopAndFactoryInfo(
+        numberOfSteps);
+    for (size_t i = 0; i < numberOfSteps; i++) {
+        expectedEventLoopAndFactoryInfo.at(i).coreId = expectedCoreId.at(i);
+    }
+
     const std::vector<std::pair<std::string, size_t>> expectedStepIDEventLoopMap =
         {std::make_pair("1", 3),
          std::make_pair("2", 3),
@@ -200,7 +221,7 @@ TEST(StreamingConfigurationManager, ConstructionFromJsonFile)
     for (const auto &stepIDEventLoopMap :
          dummyStreamingConfigurationManager->getThreadDistributionPolicy()->stepIDEventLoopMap) {
         ASSERT_EQ(stepIDEventLoopMap.first, expectedStepIDEventLoopMap.at(ctrPos).first);
-        ASSERT_EQ(stepIDEventLoopMap.second, expectedStepIDEventLoopMap.at(ctrPos).second);
+        ASSERT_EQ(stepIDEventLoopMap.second, expectedEventLoopAndFactoryInfo.at(ctrPos));
         ctrPos++;
     }
 }
@@ -257,9 +278,15 @@ TEST(StreamingConfigurationManager, JsonExportWithMapsTest)
     dummyStreamingConfigurationManager.getThreadDistributionPolicy()->eventLoopCoreMap[1] =
         std::vector<int>{1};
 
-    dummyStreamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap["test0"] = 0;
-    dummyStreamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap["test1"] = 1;
-    dummyStreamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap["test2"] = 0;
+    dummyStreamingConfigurationManager.getThreadDistributionPolicy()
+        ->stepIDEventLoopMap["test0"]
+        .coreId = 0;
+    dummyStreamingConfigurationManager.getThreadDistributionPolicy()
+        ->stepIDEventLoopMap["test1"]
+        .coreId = 1;
+    dummyStreamingConfigurationManager.getThreadDistributionPolicy()
+        ->stepIDEventLoopMap["test2"]
+        .coreId = 0;
 
     std::string jsonExport;
     ASSERT_NO_THROW(jsonExport = dummyStreamingConfigurationManager.exportJsonString());
@@ -325,9 +352,15 @@ TEST(StreamingConfigurationManager, JsonExportLoadWithMapsTest)
     dummyStreamingConfigurationManager.getThreadDistributionPolicy()->eventLoopCoreMap[1] =
         std::vector<int>{1};
 
-    dummyStreamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap["test0"] = 0;
-    dummyStreamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap["test1"] = 1;
-    dummyStreamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap["test2"] = 0;
+    dummyStreamingConfigurationManager.getThreadDistributionPolicy()
+        ->stepIDEventLoopMap["test0"]
+        .coreId = 0;
+    dummyStreamingConfigurationManager.getThreadDistributionPolicy()
+        ->stepIDEventLoopMap["test1"]
+        .coreId = 1;
+    dummyStreamingConfigurationManager.getThreadDistributionPolicy()
+        ->stepIDEventLoopMap["test2"]
+        .coreId = 0;
 
     std::string jsonExport;
     ASSERT_NO_THROW(jsonExport = dummyStreamingConfigurationManager.exportJsonString());
@@ -345,20 +378,27 @@ TEST(StreamingConfigurationManager, JsonExportLoadWithMapsTest)
     ASSERT_EQ(0, copyStreamingConfigurationManager.addStepToEventLoop("test2"));
 
     const std::vector<size_t> expectedIdEventLoop = {0, 1};
-    const std::vector<int> expectedIdCore = {0, 1};
+    const std::vector<int> expectedcoreId = {0, 1};
     int ctrPos = 0;
     for (auto eventLoopCoreMap :
          copyStreamingConfigurationManager.getThreadDistributionPolicy()->eventLoopCoreMap) {
         ASSERT_EQ(eventLoopCoreMap.first, expectedIdEventLoop.at(ctrPos));
-        ASSERT_EQ(eventLoopCoreMap.second.at(0), expectedIdCore.at(ctrPos));
+        ASSERT_EQ(eventLoopCoreMap.second.at(0), expectedcoreId.at(ctrPos));
         ctrPos++;
+    }
+
+    const size_t numberOfSteps = 3;
+    std::vector<kpsr::streaming::EventLoopIdAndFactoryInfo> expectedEventLoopAndFactoryInfo(
+        numberOfSteps);
+    for (size_t i = 0; i < numberOfSteps; i++) {
+        expectedEventLoopAndFactoryInfo.at(i).coreId = expectedIdEventLoop.at(i % 2);
     }
 
     ctrPos = 0;
     for (auto stepIDEventLoopMap :
          copyStreamingConfigurationManager.getThreadDistributionPolicy()->stepIDEventLoopMap) {
         ASSERT_EQ(stepIDEventLoopMap.first, "test" + std::to_string(ctrPos));
-        ASSERT_EQ(stepIDEventLoopMap.second, expectedIdEventLoop.at(ctrPos % 2));
+        ASSERT_EQ(stepIDEventLoopMap.second, expectedEventLoopAndFactoryInfo.at(ctrPos));
         ctrPos++;
     }
 }

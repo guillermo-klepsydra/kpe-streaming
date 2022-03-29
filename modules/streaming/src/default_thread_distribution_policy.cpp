@@ -40,18 +40,23 @@ size_t DefaultThreadDistributionPolicy::addStepToEventLoop(const std::string &st
 {
     auto index = stepIDEventLoopMap.find(stepName);
     if (index == stepIDEventLoopMap.end()) {
-        size_t minIndex = 0;
+        size_t coreId(0);
         for (size_t i = 0; i < _numberOfEventLoops; i++) {
-            if (streamEventLoopDistribution[i] < streamEventLoopDistribution[minIndex]) {
-                minIndex = i;
+            if (streamEventLoopDistribution[i] < streamEventLoopDistribution[coreId]) {
+                coreId = i;
             }
         }
-        streamEventLoopDistribution[minIndex]++;
-        stepIDEventLoopMap[stepName] = minIndex;
-        return minIndex;
+        streamEventLoopDistribution[coreId]++;
+        stepIDEventLoopMap[stepName].coreId = coreId;
+        return coreId;
     } else {
-        return index->second;
+        return index->second.coreId;
     }
+}
+
+FactoryType DefaultThreadDistributionPolicy::getFactoryType(const std::string &stepName)
+{
+    return FactoryType::EventLoop;
 }
 
 } // namespace streaming

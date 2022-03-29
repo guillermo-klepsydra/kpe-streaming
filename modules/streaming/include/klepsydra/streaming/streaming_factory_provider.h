@@ -46,12 +46,9 @@ public:
 
     virtual ~StreamingFactoryProvider();
 
-    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> &getEventLoopFactoryFloat32();
-    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> &getEventLoopFactoryChar();
-    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> &getEventLoopFactoryUChar();
-    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> &getDataMultiplexerFactoryFloat32();
-    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> &getDataMultiplexerFactoryChar();
-    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> &getDataMultiplexerFactoryUChar();
+    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> &getSmartFactoryFloat32();
+    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> &getSmartFactoryChar();
+    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> &getSmartFactoryUChar();
 
     StreamingConfigurationManager *getStreamingConfigurationManager();
 
@@ -75,12 +72,9 @@ private:
 
     std::vector<std::string> _procIntensiveStreams;
 
-    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> _eventLoopFactoryFloat32;
-    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> _eventLoopFactoryChar;
-    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> _eventLoopFactoryUChar;
-    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> _dataMultiplexerFactoryFloat32;
-    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> _dataMultiplexerFactoryChar;
-    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> _dataMultiplexerFactoryUChar;
+    std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> _smartFactoryFloat32;
+    std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> _smartFactoryChar;
+    std::shared_ptr<PublishSubscribeFactory<UI8AlignedVector>> _smartFactoryUChar;
 };
 } // namespace streaming
 } // namespace kpsr

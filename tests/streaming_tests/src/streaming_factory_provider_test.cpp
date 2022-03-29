@@ -32,14 +32,14 @@ INSTANTIATE_TEST_SUITE_P(DefaultProviderTests,
 TEST_P(StreamingFactoryProviderDefault, DefaultGetFactory)
 {
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
-        streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+        streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
     ASSERT_NE(streamingFactoryFloat32.get(), nullptr);
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::I8AlignedVector>>
-        streamingFactoryChar = sut.getEventLoopFactoryChar();
+        streamingFactoryChar = sut.getSmartFactoryChar();
     ASSERT_NE(streamingFactoryChar.get(), nullptr);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::UI8AlignedVector>>
-        streamingFactoryUChar = sut.getEventLoopFactoryUChar();
+        streamingFactoryUChar = sut.getSmartFactoryUChar();
     ASSERT_NE(streamingFactoryUChar.get(), nullptr);
 }
 
@@ -52,7 +52,7 @@ TEST_P(StreamingFactoryProviderDefault, StartStopTest)
 TEST_P(StreamingFactoryProviderDefault, GetNewPubSubTest)
 {
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
-        streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+        streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
     ASSERT_NE(streamingFactoryFloat32.get(), nullptr);
     ASSERT_NE(streamingFactoryFloat32->getPublisher("conv", 10), nullptr);
     ASSERT_NE(streamingFactoryFloat32->getPublisherMulti("reluAlign", 10, 2), nullptr);
@@ -62,7 +62,7 @@ TEST_P(StreamingFactoryProviderDefault, GetNewPubSubTest)
     ASSERT_NE(streamingFactoryFloat32->getSubscriber("relu", 10), nullptr);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::I8AlignedVector>>
-        streamingFactoryChar = sut.getEventLoopFactoryChar();
+        streamingFactoryChar = sut.getSmartFactoryChar();
     ASSERT_NE(streamingFactoryChar.get(), nullptr);
 
     ASSERT_NO_THROW(sut.start());
@@ -72,7 +72,7 @@ TEST_P(StreamingFactoryProviderDefault, GetNewPubSubTest)
 TEST_P(StreamingFactoryProviderDefault, GetExistingPubSubTest)
 {
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
-        streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+        streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
     ASSERT_NE(streamingFactoryFloat32.get(), nullptr);
     auto F32APub = streamingFactoryFloat32->getPublisher("conv", 10);
     ASSERT_EQ(streamingFactoryFloat32->getPublisher("conv", 100), F32APub);
@@ -89,7 +89,7 @@ TEST_P(StreamingFactoryProviderDefault, GetExistingPubSubTest)
     ASSERT_EQ(streamingFactoryFloat32->getSubscriber("relu", 1), F32Sub);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::I8AlignedVector>>
-        streamingFactoryChar = sut.getEventLoopFactoryChar();
+        streamingFactoryChar = sut.getSmartFactoryChar();
     ASSERT_NE(streamingFactoryChar.get(), nullptr);
 
     ASSERT_NO_THROW(sut.start());
@@ -116,7 +116,7 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFloat32)
                                                   &environment);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
-        streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+        streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
     ASSERT_NE(streamingFactoryFloat32.get(), nullptr);
     streamingFactoryFloat32->getPublisher("conv", 10);
     streamingFactoryFloat32->getPublisherMulti("reluAlign", 10, 2);
@@ -149,7 +149,7 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionChar)
                                                   &environment);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::I8AlignedVector>>
-        streamingFactoryChar = sut.getEventLoopFactoryChar();
+        streamingFactoryChar = sut.getSmartFactoryChar();
     ASSERT_NE(streamingFactoryChar.get(), nullptr);
     auto CharPub = streamingFactoryChar->getPublisher("test", 10);
     ASSERT_EQ(streamingFactoryChar->getPublisher("test", 1), CharPub);
@@ -158,7 +158,7 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionChar)
     ASSERT_EQ(streamingFactoryChar->getSubscriber("test", 1), CharSub);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::UI8AlignedVector>>
-        streamingFactoryUChar = sut.getEventLoopFactoryUChar();
+        streamingFactoryUChar = sut.getSmartFactoryUChar();
     ASSERT_NE(streamingFactoryUChar.get(), nullptr);
     auto UCharPub = streamingFactoryUChar->getPublisher("test_unsigned", 10);
     ASSERT_EQ(streamingFactoryUChar->getPublisher("test_unsigned", 1), UCharPub);
@@ -189,7 +189,7 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFileContainer)
     kpsr::streaming::StreamingFactoryProvider sut(nullptr, &environment);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
-        streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+        streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
     streamingFactoryFloat32->getPublisher("conv", 10);
     streamingFactoryFloat32->getPublisherMulti("reluAlign", 10, 2);
     streamingFactoryFloat32->getPublisher("relu", 10);
@@ -215,7 +215,7 @@ TEST(StreamingFactoryProvider, InsufficientThreadsError)
 
         auto start = [&]() {
             for (auto &provider : sut) {
-                auto streamingFactoryFloat32 = provider->getEventLoopFactoryFloat32();
+                auto streamingFactoryFloat32 = provider->getSmartFactoryFloat32();
                 provider->start();
             }
         };
@@ -223,7 +223,7 @@ TEST(StreamingFactoryProvider, InsufficientThreadsError)
             EXPECT_THROW(start(), std::runtime_error);
         }
         for (auto &provider : sut) {
-            auto streamingFactoryFloat32 = provider->getEventLoopFactoryFloat32();
+            auto streamingFactoryFloat32 = provider->getSmartFactoryFloat32();
             provider->stop();
         }
     }
@@ -240,7 +240,7 @@ TEST(StreamingFactoryProvider, MultiStartStopTest)
 
             std::shared_ptr<
                 kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
-                streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+                streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
             EXPECT_NO_THROW(sut.start());
             sut.stop();
         }
@@ -253,7 +253,7 @@ TEST(StreamingFactoryProvider, MultiStartStopTest)
 
             std::shared_ptr<
                 kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
-                streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+                streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
             EXPECT_NO_THROW(sut.start());
             sut.stop();
         }
@@ -264,7 +264,7 @@ TEST(StreamingFactoryProvider, MultiStartStopTest)
                                                       false);
 
         std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
-            streamingFactoryFloat32 = sut.getEventLoopFactoryFloat32();
+            streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
         EXPECT_NO_THROW(sut.start());
         sut.stop();
     }

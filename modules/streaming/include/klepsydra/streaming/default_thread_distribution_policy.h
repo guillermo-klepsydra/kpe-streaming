@@ -32,6 +32,7 @@ public:
     DefaultThreadDistributionPolicy(size_t numberOfCores, size_t numberOfEventLoops);
 
     size_t addStepToEventLoop(const std::string &stepName) override;
+    FactoryType getFactoryType(const std::string &stepName) override;
 
     std::vector<int> streamEventLoopDistribution;
 

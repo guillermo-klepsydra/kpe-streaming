@@ -25,7 +25,7 @@ namespace streaming {
 std::shared_ptr<ThreadDistributionPolicy>
 DefaultThreadDistributionPolicyFactoryImpl::createThreadDistributionPolicy()
 {
-    size_t numberOfCores = std::thread::hardware_concurrency();
+    size_t numberOfCores = std::max((uint32_t) 1, std::thread::hardware_concurrency());
     size_t numberOfEventLoops = numberOfCores * CORE_RATIO;
     return std::make_shared<DefaultThreadDistributionPolicy>(numberOfCores, numberOfEventLoops);
 }

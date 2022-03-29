@@ -31,7 +31,12 @@ public:
 
     virtual size_t addStepToEventLoop(const std::string &stepName) override
     {
-        return stepIDEventLoopMap[stepName];
+        return stepIDEventLoopMap[stepName].coreId;
+    }
+
+    virtual FactoryType getFactoryType(const std::string &stepName) override
+    {
+        return stepIDEventLoopMap[stepName].factoryType;
     }
 };
 
