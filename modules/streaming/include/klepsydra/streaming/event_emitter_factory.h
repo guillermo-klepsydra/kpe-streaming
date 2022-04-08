@@ -15,8 +15,8 @@
 *  Klepsydra Technologies GmbH.
 *
 *****************************************************************************/
-#ifndef EVENT_EMITTER_FACTORY_H
-#define EVENT_EMITTER_FACTORY_H
+#ifndef STREAMING_EVENT_EMITTER_FACTORY_H
+#define STREAMING_EVENT_EMITTER_FACTORY_H
 
 #include <klepsydra/core/container.h>
 #include <map>
@@ -79,4 +79,4 @@ private:
 } // namespace streaming
 } // namespace kpsr
 
-#endif // EVENT_EMITTER_FACTORY_H
+#endif // STREAMING_EVENT_EMITTER_FACTORY_H
