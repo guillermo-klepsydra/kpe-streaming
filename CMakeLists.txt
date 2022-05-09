@@ -103,6 +103,23 @@ ELSE()
   SET(MINIMAL_BUILD false)
 ENDIF()
 
+option(KPSR_ENABLE_EXAMPLES "Enable building and installing examples" OFF)
+IF (MINIMAL_BUILD)
+  option(KPSR_ENABLE_TESTS "Enable tests" OFF)
+ELSE()
+  option(KPSR_ENABLE_TESTS "Enable tests" ON)
+ENDIF()
+
+IF((CMAKE_SYSTEM_PROCESSOR STREQUAL "leon3") OR ( KPSR_WITH_FREERTOS))
+  SET(KPSR_ENABLE_EXAMPLES "OFF" CACHE BOOL "Disable building and installing examples")
+  SET(KPSR_ENABLE_TESTS "OFF" CACHE BOOL "Disable building tests") # Toggle tests off if freertos or leon3 processor
+ENDIF()
+
+IF(KPSR_ENABLE_TESTS)
+  enable_testing()
+ENDIF()
+
+
 IF(KPSR_WITH_FREERTOS)
   SET(BUILD_SHARED_LIBS "OFF" CACHE PATH "Static libraries" FORCE)
   include(${KPSR_BUILD_PATH}/freeRTOS/cmake/zynq.cmake)
@@ -145,10 +162,6 @@ else()
     add_definitions(-DUSE_GET_WRITE_QUEUE)
 endif()
 
-IF((NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "leon3") AND (NOT KPSR_WITH_FREERTOS))
-  enable_testing()
-ENDIF()
-
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # require at least gcc 4.8
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.5)
@@ -159,10 +172,34 @@ endif()
 
 add_definitions(-fno-strict-overflow)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 if (KPSR_WITH_CODE_METRICS)
-  include(CodeCoverage)
-  set(CODE_COVERAGE_VERBOSE ON)
-  APPEND_COVERAGE_COMPILER_FLAGS()
+  IF (CMAKE_BUILD_TYPE MATCHES Debug AND CMAKE_COMPILER_IS_GNUCXX)
+    # Code Coverage
+    include(CodeCoverage)
+    set(CODE_COVERAGE_VERBOSE ON)
+    APPEND_COVERAGE_COMPILER_FLAGS()
+    STRING(REPLACE ${CMAKE_SOURCE_DIR}/ "" THIRDPARTIES_PATH_COVERAGE ${THIRDPARTIES_PATH})
+    LIST(APPEND COVERAGE_EXCLUDES
+      ${THIRDPARTIES_PATH_COVERAGE}
+      ${CMAKE_PREFIX_PATH}
+      tests
+      /usr/
+      /opt
+      )
+    setup_target_for_coverage_gcovr_xml(
+      NAME coverage
+      EXECUTABLE make test
+      )
+    setup_target_for_coverage_gcovr_html(
+      NAME coverage_html
+      EXECUTABLE make test
+      )
+  ENDIF()
    # Code style check
   include(CppcheckTargets)
   include(Findcppcheck)
@@ -173,34 +210,9 @@ include(CodeFormat)
 # CCACHE support
 include(FindCcache)
 
-# Code Coverage
-if (KPSR_WITH_CODE_METRICS AND CMAKE_BUILD_TYPE MATCHES Debug AND CMAKE_COMPILER_IS_GNUCXX)
-  STRING(REPLACE ${CMAKE_SOURCE_DIR}/ "" THIRDPARTIES_PATH_COVERAGE ${THIRDPARTIES_PATH})
-  LIST(APPEND COVERAGE_EXCLUDES
-    ${THIRDPARTIES_PATH_COVERAGE}
-    ${CMAKE_PREFIX_PATH}
-    tests
-    /usr/
-    /opt
-    )
-  setup_target_for_coverage_gcovr_xml(
-    NAME coverage
-    EXECUTABLE make test
-    )
-  setup_target_for_coverage_gcovr_html(
-    NAME coverage_html
-    EXECUTABLE make test
-    )
-ENDIF()
-
 if (DEFINED KPSR_WITH_MARCH)
    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${KPSR_WITH_MARCH}")
 endif()
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 include(KlepsydraBuild)
 
@@ -218,7 +230,7 @@ find_package(KlepsydraAdmin 4.0.0 REQUIRED)
 LINK_DIRECTORIES(${CMAKE_INSTALL_FULL_LIBDIR})
 
 ADD_SUBDIRECTORY(modules)
-IF(NOT MINIMAL_BUILD)
+IF(KPSR_ENABLE_TESTS)
   ADD_SUBDIRECTORY(tests)
 ENDIF()
 

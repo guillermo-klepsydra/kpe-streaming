@@ -31,7 +31,7 @@ jobs:
       - name: Install kpe-core
         run: |
           mkdir build && cd build 
-          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug -DKPSR_ENABLE_TESTS=false -DKPSR_ENABLE_EXAMPLES=false ../
           make -j$(nproc)
           sudo make -j$(nproc) install
         working-directory: kpe-core
@@ -59,7 +59,7 @@ jobs:
       - name: Install kpe-admin
         run: |
           mkdir build && cd build 
-          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_SOCKET=true -DCMAKE_BUILD_TYPE=Debug  -DKPSR_NO_LICENSE=true ../
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_SOCKET=true -DCMAKE_BUILD_TYPE=Debug  -DKPSR_NO_LICENSE=true -DKPSR_ENABLE_TESTS=false -DKPSR_ENABLE_EXAMPLES=false ../
           make -j$(nproc)
           sudo make -j$(nproc) install
         working-directory: kpe-admin
@@ -77,7 +77,7 @@ jobs:
       - name: Build kpe-streaming
         run: |
           mkdir build && cd build
-          cmake -DKPSR_WITH_DOXYGEN=true -DCMAKE_BUILD_TYPE=Debug  ../
+          cmake -DKPSR_WITH_DOXYGEN=true -DCMAKE_BUILD_TYPE=Debug  -DKPSR_ENABLE_TESTS=true -DKPSR_ENABLE_EXAMPLES=false ../
           make -j$(nproc)
 
       - name: Unit tests
@@ -135,7 +135,7 @@ jobs:
       - name: Install kpe-core
         run: |
           mkdir build && cd build 
-          cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_DDS=${{ matrix.dds }} -DKPSR_WITH_ZMQ=${{ matrix.zmq }} -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Release ../
+          cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_DDS=${{ matrix.dds }} -DKPSR_WITH_ZMQ=${{ matrix.zmq }} -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Release -DKPSR_ENABLE_TESTS=false -DKPSR_ENABLE_EXAMPLES=false ../
           make -j$(nproc)
           sudo make -j$(nproc) install
         working-directory: kpe-core
@@ -156,7 +156,7 @@ jobs:
       - name: Install kpe-admin
         run: |
           mkdir build && cd build 
-          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_SOCKET=true -DCMAKE_BUILD_TYPE=Debug  -DKPSR_NO_LICENSE=true ../
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_SOCKET=true -DCMAKE_BUILD_TYPE=Debug  -DKPSR_NO_LICENSE=true -DKPSR_ENABLE_TESTS=false -DKPSR_ENABLE_EXAMPLES=false ../
           make -j$(nproc)
           sudo make -j$(nproc) install
         working-directory: kpe-admin
@@ -174,7 +174,7 @@ jobs:
       - name: Build kpe-streming
         run: |
           mkdir build && cd build
-          cmake -DKPSR_WITH_DOXYGEN=true -DCMAKE_BUILD_TYPE=Debug  ../
+          cmake -DKPSR_WITH_DOXYGEN=true -DCMAKE_BUILD_TYPE=Debug -DKPSR_ENABLE_TESTS=true -DKPSR_ENABLE_EXAMPLES=false ../
           make -j$(nproc)
 
       - name: Unit tests
