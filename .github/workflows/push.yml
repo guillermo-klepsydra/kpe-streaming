@@ -267,6 +267,12 @@ jobs:
         run: |
           sudo rm -rf ${GITHUB_WORKSPACE}/kpe-admin
 
+      - name: Clone kpe-streaming
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_TOKEN }}
+
       - name: Build kpe-streaming
         run: |
           mkdir build && cd build

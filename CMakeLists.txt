@@ -222,8 +222,8 @@ include(KlepsydraBuild)
 # Project Logic
 # ------------------------------------------------------------------------------------------------------
 
-find_package(Klepsydra 4.0.1 REQUIRED)
-find_package(KlepsydraAdmin 4.0.0 REQUIRED)
+find_package(Klepsydra REQUIRED)
+find_package(KlepsydraAdmin REQUIRED)
 ######################################################################################
 # ADD SUB FOLDERS
 ######################################################################################
