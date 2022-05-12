@@ -27,7 +27,7 @@
 namespace kpsr {
 namespace streaming {
 
-enum FactoryType { EventEmitter, EventLoop, DataMultiplexer };
+enum FactoryType { EventEmitter, EventLoop, DataMultiplexer, Unsupported };
 
 struct EventLoopIdAndFactoryInfo
 {

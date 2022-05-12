@@ -16,7 +16,7 @@
 *
 *****************************************************************************/
 
-#include <klepsydra/streaming/smart_publish_subscribe_factory.h>
+#include <klepsydra/streaming/generic_smart_publish_subscribe_factory.h>
 
 #include <klepsydra/mem_core/mem_env.h>
 #include <klepsydra/streaming/default_thread_distribution_policy.h>
@@ -74,10 +74,10 @@ public:
 };
 
 using TestTuple = std::tuple<kpsr::Container *, bool>;
-class SmartPublishSubscribeFactoryTest : public ::testing::TestWithParam<TestTuple>
+class GenericSmartPublishSubscribeFactoryTest : public ::testing::TestWithParam<TestTuple>
 {
 protected:
-    SmartPublishSubscribeFactoryTest()
+    GenericSmartPublishSubscribeFactoryTest()
         : container(nullptr)
         , poolSize(2)
         , numberOfCores(1)
@@ -118,9 +118,6 @@ protected:
 
     virtual void TearDown() { container = nullptr; }
 
-    const size_t vectorSize = 1;
-    const size_t multiVectorSize = 1;
-
     kpsr::Container *container;
     bool useTestFactory;
     int poolSize;
@@ -136,174 +133,124 @@ protected:
     std::shared_ptr<kpsr::streaming::EventLoopFactory> eventLoopFactory;
 };
 
-kpsr::mem::MemEnv smartPubSubFactoryTestEnvironment;
-kpsr::Container smartPubSubFactoryTestContainer(&smartPubSubFactoryTestEnvironment,
-                                                "SmartPubSubFactoryTestEnvironment");
+kpsr::mem::MemEnv genericSmartPubSubFactoryTestEnvironment;
+kpsr::Container genericSmartPubSubFactoryTestContainer(&genericSmartPubSubFactoryTestEnvironment,
+                                                "GenericSmartPubSubFactoryTestEnvironment");
 
-INSTANTIATE_TEST_SUITE_P(SmartPublishSubscribeFactoryTests,
-                         SmartPublishSubscribeFactoryTest,
+INSTANTIATE_TEST_SUITE_P(GenericSmartPublishSubscribeFactoryTests,
+                         GenericSmartPublishSubscribeFactoryTest,
                          ::testing::Combine(::testing::Values(nullptr,
-                                                              &smartPubSubFactoryTestContainer),
+                                                              &genericSmartPubSubFactoryTestContainer),
                                             ::testing::Values(true, false)));
 
-TEST_P(SmartPublishSubscribeFactoryTest, ConstructorTest)
+TEST_P(GenericSmartPublishSubscribeFactoryTest, ConstructorTest)
 {
-    ASSERT_NO_THROW(kpsr::streaming::SmartPublishSubscribeFactory<kpsr::streaming::F32AlignedVector>
+    ASSERT_NO_THROW(kpsr::streaming::GenericSmartPublishSubscribeFactory<kpsr::streaming::F32AlignedVector>
                         smartFactoryFloat32(eventEmitterFactory,
                                             eventLoopFactory,
-                                            container,
                                             streamingConfigurationManager.get(),
                                             useTestFactory));
 
-    ASSERT_NO_THROW(kpsr::streaming::SmartPublishSubscribeFactory<kpsr::streaming::I8AlignedVector>
+    ASSERT_NO_THROW(kpsr::streaming::GenericSmartPublishSubscribeFactory<kpsr::streaming::I8AlignedVector>
                         smartFactoryChar(eventEmitterFactory,
                                          eventLoopFactory,
-                                         container,
                                          streamingConfigurationManager.get(),
                                          useTestFactory));
 
-    ASSERT_NO_THROW(kpsr::streaming::SmartPublishSubscribeFactory<kpsr::streaming::UI8AlignedVector>
+    ASSERT_NO_THROW(kpsr::streaming::GenericSmartPublishSubscribeFactory<kpsr::streaming::UI8AlignedVector>
                         smartFactoryChar(eventEmitterFactory,
                                          eventLoopFactory,
-                                         container,
                                          streamingConfigurationManager.get(),
                                          useTestFactory));
 }
 
-TEST_P(SmartPublishSubscribeFactoryTest, getPubSubF32Test)
+
+TEST_P(GenericSmartPublishSubscribeFactoryTest, getPubSubF32Test)
 {
-    auto smartFactoryF32 = std::make_unique<kpsr::streaming::SmartPublishSubscribeFactory<
+    auto smartFactoryF32 = std::make_unique<kpsr::streaming::GenericSmartPublishSubscribeFactory<
         kpsr::streaming::F32AlignedVector>>(eventEmitterFactory,
                                             eventLoopFactory,
-                                            container,
                                             streamingConfigurationManager.get(),
                                             useTestFactory);
+    ASSERT_NO_THROW(smartFactoryF32->startup());
 
     for (auto stepName : stepNames) {
-        kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
+        kpsr::Subscriber<kpsr::streaming::F32AlignedVector>
             *subscriber;
-        ASSERT_NO_THROW(subscriber = smartFactoryF32->getSubscriber(stepName, vectorSize));
+        ASSERT_NO_THROW(subscriber = smartFactoryF32->getSubscriber(stepName));
 
-        kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
+        kpsr::Publisher<kpsr::streaming::F32AlignedVector>
             *publisher;
-        ASSERT_NO_THROW(publisher = smartFactoryF32->getPublisher(stepName, vectorSize));
+        ASSERT_NO_THROW(publisher = smartFactoryF32->getPublisher(stepName));
 
-        kpsr::Subscriber<
-            kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>>
-            *subscriberMulti;
-        ASSERT_NO_THROW(subscriberMulti = smartFactoryF32->getSubscriberMulti(stepName,
-                                                                              vectorSize,
-                                                                              multiVectorSize));
-
-        kpsr::Publisher<
-            kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::F32AlignedVector>>>
-            *publisherMulti;
-        ASSERT_NO_THROW(publisherMulti = smartFactoryF32->getPublisherMulti(stepName,
-                                                                            vectorSize,
-                                                                            multiVectorSize));
-
-        if (stepName != "testStep_Unsupported" || (useTestFactory == true)) {
+        if (((stepName != "testStep_DataMultiplexer") && (stepName != "testStep_Unsupported")) || (useTestFactory)) {
             ASSERT_NE(nullptr, subscriber);
             ASSERT_NE(nullptr, publisher);
-            ASSERT_NE(nullptr, subscriberMulti);
-            ASSERT_NE(nullptr, publisherMulti);
         } else {
             ASSERT_EQ(nullptr, subscriber);
             ASSERT_EQ(nullptr, publisher);
-            ASSERT_EQ(nullptr, subscriberMulti);
-            ASSERT_EQ(nullptr, publisherMulti);
         }
     }
+
+    ASSERT_NO_THROW(smartFactoryF32->shutdown());
 }
 
-TEST_P(SmartPublishSubscribeFactoryTest, getPubSubCharTest)
+TEST_P(GenericSmartPublishSubscribeFactoryTest, getPubSubCharTest)
 {
-    auto smartFactoryChar = std::make_unique<kpsr::streaming::SmartPublishSubscribeFactory<
+    auto smartFactoryChar = std::make_unique<kpsr::streaming::GenericSmartPublishSubscribeFactory<
         kpsr::streaming::I8AlignedVector>>(eventEmitterFactory,
                                            eventLoopFactory,
-                                           container,
                                            streamingConfigurationManager.get(),
                                            useTestFactory);
+    ASSERT_NO_THROW(smartFactoryChar->startup());
 
     for (auto stepName : stepNames) {
-        kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector>>
+        kpsr::Subscriber<kpsr::streaming::I8AlignedVector>
             *subscriber;
-        ASSERT_NO_THROW(subscriber = smartFactoryChar->getSubscriber(stepName, vectorSize));
+        ASSERT_NO_THROW(subscriber = smartFactoryChar->getSubscriber(stepName));
 
-        kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector>>
+        kpsr::Publisher<kpsr::streaming::I8AlignedVector>
             *publisher;
-        ASSERT_NO_THROW(publisher = smartFactoryChar->getPublisher(stepName, vectorSize));
+        ASSERT_NO_THROW(publisher = smartFactoryChar->getPublisher(stepName));
 
-        kpsr::Subscriber<
-            kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::I8AlignedVector>>>
-            *subscriberMulti;
-        ASSERT_NO_THROW(subscriberMulti = smartFactoryChar->getSubscriberMulti(stepName,
-                                                                               vectorSize,
-                                                                               multiVectorSize));
-
-        kpsr::Publisher<
-            kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::I8AlignedVector>>>
-            *publisherMulti;
-        ASSERT_NO_THROW(publisherMulti = smartFactoryChar->getPublisherMulti(stepName,
-                                                                             vectorSize,
-                                                                             multiVectorSize));
-
-        if (stepName != "testStep_Unsupported" || (useTestFactory == true)) {
+        if (((stepName != "testStep_DataMultiplexer") && (stepName != "testStep_Unsupported")) || (useTestFactory)) {
             ASSERT_NE(nullptr, subscriber);
             ASSERT_NE(nullptr, publisher);
-            ASSERT_NE(nullptr, subscriberMulti);
-            ASSERT_NE(nullptr, publisherMulti);
         } else {
             ASSERT_EQ(nullptr, subscriber);
             ASSERT_EQ(nullptr, publisher);
-            ASSERT_EQ(nullptr, subscriberMulti);
-            ASSERT_EQ(nullptr, publisherMulti);
         }
     }
+
+    ASSERT_NO_THROW(smartFactoryChar->shutdown());
 }
 
-TEST_P(SmartPublishSubscribeFactoryTest, getPubSubUCharTest)
+TEST_P(GenericSmartPublishSubscribeFactoryTest, getPubSubUCharTest)
 {
-    auto smartFactoryUChar = std::make_unique<kpsr::streaming::SmartPublishSubscribeFactory<
+    auto smartFactoryUChar = std::make_unique<kpsr::streaming::GenericSmartPublishSubscribeFactory<
         kpsr::streaming::UI8AlignedVector>>(eventEmitterFactory,
                                             eventLoopFactory,
-                                            container,
                                             streamingConfigurationManager.get(),
                                             useTestFactory);
+    ASSERT_NO_THROW(smartFactoryUChar->startup());
 
     for (auto stepName : stepNames) {
-        kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::UI8AlignedVector>>
+        kpsr::Subscriber<kpsr::streaming::UI8AlignedVector>
             *subscriber;
-        ASSERT_NO_THROW(subscriber = smartFactoryUChar->getSubscriber(stepName, vectorSize));
+        ASSERT_NO_THROW(subscriber = smartFactoryUChar->getSubscriber(stepName));
 
-        kpsr::Publisher<kpsr::streaming::DataBatchWithId<kpsr::streaming::UI8AlignedVector>>
+        kpsr::Publisher<kpsr::streaming::UI8AlignedVector>
             *publisher;
-        ASSERT_NO_THROW(publisher = smartFactoryUChar->getPublisher(stepName, vectorSize));
+        ASSERT_NO_THROW(publisher = smartFactoryUChar->getPublisher(stepName));
 
-        kpsr::Subscriber<
-            kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::UI8AlignedVector>>>
-            *subscriberMulti;
-        ASSERT_NO_THROW(subscriberMulti = smartFactoryUChar->getSubscriberMulti(stepName,
-                                                                                vectorSize,
-                                                                                multiVectorSize));
-
-        kpsr::Publisher<
-            kpsr::streaming::DataBatchWithId<std::vector<kpsr::streaming::UI8AlignedVector>>>
-            *publisherMulti;
-        ASSERT_NO_THROW(publisherMulti = smartFactoryUChar->getPublisherMulti(stepName,
-                                                                              vectorSize,
-                                                                              multiVectorSize));
-
-        if ((stepName != "testStep_Unsupported") || (useTestFactory == true)) {
+        if (((stepName != "testStep_DataMultiplexer") && (stepName != "testStep_Unsupported")) || (useTestFactory)) {
             ASSERT_NE(nullptr, subscriber);
             ASSERT_NE(nullptr, publisher);
-            ASSERT_NE(nullptr, subscriberMulti);
-            ASSERT_NE(nullptr, publisherMulti);
         } else {
             ASSERT_EQ(nullptr, subscriber);
             ASSERT_EQ(nullptr, publisher);
-            ASSERT_EQ(nullptr, subscriberMulti);
-            ASSERT_EQ(nullptr, publisherMulti);
         }
     }
+
+    ASSERT_NO_THROW(smartFactoryUChar->shutdown());
 }

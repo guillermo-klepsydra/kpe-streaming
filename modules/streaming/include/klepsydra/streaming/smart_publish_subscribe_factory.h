@@ -77,7 +77,9 @@ public:
             }
 
             default: {
-                spdlog::warn("The Factory Type does not exist.");
+                spdlog::warn("The Publisher Factory Type {}, for the stepName {}, does not exist.",
+                             publisherFactoryType,
+                             stepName);
                 return nullptr;
             }
             }
@@ -107,7 +109,9 @@ public:
             }
 
             default: {
-                spdlog::warn("The Factory Type does not exist.");
+                spdlog::warn("The Subscriber Factory Type {}, for the stepName {}, does not exist.",
+                             subscriberFactoryType,
+                             stepName);
                 return nullptr;
             }
             }
@@ -145,7 +149,9 @@ public:
             }
 
             default: {
-                spdlog::warn("The Factory Type does not exist.");
+                spdlog::warn("The Publisher Factory Type {}, for the stepName {}, does not exist.",
+                             publisherFactoryType,
+                             stepName);
                 return nullptr;
             }
             }
@@ -183,7 +189,9 @@ public:
             }
 
             default: {
-                spdlog::warn("The Factory Type does not exist.");
+                spdlog::warn("The Subscriber Factory Type {}, for the stepName {}, does not exist.",
+                             subscriberFactoryType,
+                             stepName);
                 return nullptr;
             }
             }
