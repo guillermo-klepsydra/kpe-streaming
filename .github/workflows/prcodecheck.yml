@@ -14,9 +14,10 @@ jobs:
   format-check:
     name: Code style
     if: github.ref != 'refs/heads/main'
-    runs-on: [self-hosted, aws, general, X64]
+    runs-on: [self-hosted, general, X64]
     container:
-      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.0.0
+      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.3.1
+      options: --user kpsruser -v /home/kpsruser/.ccache:/github/home/.ccache
       credentials:
         username: AWS
         password: ${{ secrets.ECR_PASSWORD }}
@@ -69,7 +70,7 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Build kpe-streaming
+      - name: Code format check
         run: |
           mkdir build && cd build 
           cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../
@@ -82,9 +83,10 @@ jobs:
 
   codecoverage:
     name: Code coverage
-    runs-on: [self-hosted, aws, general, X64]
+    runs-on: [self-hosted, general, X64]
     container:
-      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.0.0
+      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.3.1
+      options: --user kpsruser -v /home/kpsruser/.ccache:/github/home/.ccache
       credentials:
         username: AWS
         password: ${{ secrets.ECR_PASSWORD }}
@@ -143,6 +145,11 @@ jobs:
           mkdir build && cd build 
           cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../
           make -j$(nproc)
+
+      - name: Code coverage
+        timeout-minutes: 5
+        run: |
+          cd build
           make -j$(nproc) coverage
 
       - uses: codecov/codecov-action@v2

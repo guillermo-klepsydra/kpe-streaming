@@ -11,10 +11,10 @@ defaults:
 jobs:
   builddebug:
     name: Vanilla Debug
-    runs-on: [self-hosted, aws, general, X64]
+    runs-on: [self-hosted, general, X64]
     container:
-      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.0.0
-      options: --user kpsruser
+      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.3.1
+      options: --user kpsruser -v /home/kpsruser/.ccache:/github/home/.ccache
       credentials:
         username: AWS
         password: ${{ secrets.ECR_PASSWORD }}
@@ -81,6 +81,7 @@ jobs:
           make -j$(nproc)
 
       - name: Unit tests
+        timeout-minutes: 5
         run: |
           cd build
           make test
@@ -115,10 +116,10 @@ jobs:
             dds: "false"
 
     name: ${{ matrix.name }} Release
-    runs-on: [self-hosted, aws, general, X64]
+    runs-on: [self-hosted, general, X64]
     container:
-      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.0.0
-      options: --user kpsruser
+      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.3.1
+      options: --user kpsruser -v /home/kpsruser/.ccache:/github/home/.ccache
       credentials:
         username: AWS
         password: ${{ secrets.ECR_PASSWORD }}
@@ -178,6 +179,7 @@ jobs:
           make -j$(nproc)
 
       - name: Unit tests
+        timeout-minutes: 5
         run: |
           cd build
           make test
@@ -200,14 +202,14 @@ jobs:
 
   rtems5:
     needs: builddebug
-    runs-on: [self-hosted, aws, general, X64]
+    runs-on: [self-hosted, general, X64]
     strategy:
       matrix:
         rtemstarget: ["zedboard", "zynqa9qemu"]
     name: RTEMS5 ${{ matrix.rtemstarget }}
     container:
-      image: "337955887028.dkr.ecr.eu-central-1.amazonaws.com/rtems5:${{ matrix.rtemstarget }}-1.0.0"
-      options: --user kpsruser
+      image: "337955887028.dkr.ecr.eu-central-1.amazonaws.com/rtems5:${{ matrix.rtemstarget }}-1.0.1"
+      options: --user kpsruser -v /home/kpsruser/.ccache:/github/home/.ccache
       credentials:
         username: AWS
         password: ${{ secrets.ECR_PASSWORD }}
