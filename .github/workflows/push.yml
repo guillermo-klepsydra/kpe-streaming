@@ -74,6 +74,10 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
 
+      - name: Get tags
+        run: |
+          git fetch -f --prune --unshallow --tags --recurse-submodules=no
+
       - name: Build kpe-streaming
         run: |
           mkdir build && cd build
