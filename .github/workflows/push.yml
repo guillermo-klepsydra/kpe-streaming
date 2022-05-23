@@ -20,7 +20,7 @@ jobs:
         password: ${{ secrets.ECR_PASSWORD }}
     steps:
       - name: Clone kpe-core
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: klepsydra-technologies/kpe-core
           submodules: recursive
@@ -48,7 +48,7 @@ jobs:
           sudo rm -rf ${GITHUB_WORKSPACE}/kpe-core
 
       - name: Clone kpe-admin
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: klepsydra-technologies/kpe-admin
           submodules: recursive
@@ -69,7 +69,7 @@ jobs:
           sudo rm -rf ${GITHUB_WORKSPACE}/kpe-admin
 
       - name: Clone kpe-streaming
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
@@ -125,7 +125,7 @@ jobs:
         password: ${{ secrets.ECR_PASSWORD }}
     steps:
       - name: Clone kpe-core
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: klepsydra-technologies/kpe-core
           submodules: recursive
@@ -146,7 +146,7 @@ jobs:
           sudo rm -rf ${GITHUB_WORKSPACE}/kpe-core
 
       - name: Clone kpe-admin
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: klepsydra-technologies/kpe-admin
           submodules: recursive
@@ -167,7 +167,7 @@ jobs:
           sudo rm -rf ${GITHUB_WORKSPACE}/kpe-admin
 
       - name: Clone kpe-streaming
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
@@ -215,7 +215,7 @@ jobs:
         password: ${{ secrets.ECR_PASSWORD }}
     steps:
       - name: Clone kpe-core
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: klepsydra-technologies/kpe-core
           submodules: recursive
@@ -236,7 +236,7 @@ jobs:
           sudo rm -rf ${GITHUB_WORKSPACE}/kpe-core
 
       - name: Clone kpe-admin
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: klepsydra-technologies/kpe-admin
           submodules: recursive
@@ -270,7 +270,7 @@ jobs:
           sudo rm -rf ${GITHUB_WORKSPACE}/kpe-admin
 
       - name: Clone kpe-streaming
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
           token: ${{ secrets.GH_TOKEN }}
