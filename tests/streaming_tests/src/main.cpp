@@ -24,9 +24,7 @@
 
 int main(int argc, char **argv)
 {
-    size_t bufferSize = 4;
-    size_t numberOfCores = std::max((uint32_t) 1, std::thread::hardware_concurrency());
-    kpsr::Threadpool::getCriticalThreadPool(numberOfCores + bufferSize);
+    kpsr::Threadpool::getCriticalThreadPool(16);
     kpsr::Threadpool::getNonCriticalThreadPool(16);
 
     spdlog::set_pattern("[%c] [%H:%M:%S %f] [%n] [%l] [%t] %v");
