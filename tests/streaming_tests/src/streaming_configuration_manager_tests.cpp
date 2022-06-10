@@ -165,7 +165,7 @@ TEST(StreamingConfigurationManager, ConstructionWithDefaultPolicyWithIrregularDi
 
 TEST(StreamingConfigurationManager, ConstructionFromJsonFile)
 {
-    const std::string jsonFileName = std::string(TEST_DATA) + "/streaming_conf.json";
+    const std::string jsonFileName = std::string(TEST_DATA) + "/streaming_conf_policy.json";
     std::unique_ptr<kpsr::streaming::StreamingConfigurationManager>
         dummyStreamingConfigurationManager;
     ASSERT_NO_THROW(

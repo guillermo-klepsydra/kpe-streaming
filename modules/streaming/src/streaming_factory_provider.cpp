@@ -34,6 +34,7 @@ namespace streaming {
 StreamingFactoryProvider::StreamingFactoryProvider(
     ThreadDistributionPolicyFactory *threadDistributionPolicyFactory, bool testDNN)
     : _container(nullptr)
+    , _useTestFactories(testDNN)
 {
     auto threadDistributionPolicy = threadDistributionPolicyFactory->createThreadDistributionPolicy();
     size_t numberOfEventLoops = threadDistributionPolicy->eventLoopCoreMap.size();
@@ -47,12 +48,10 @@ StreamingFactoryProvider::StreamingFactoryProvider(
                                                         TEST_NUMBER_OF_PARALLEL_THREADS,
                                                         parallisedLayers,
                                                         threadDistributionPolicy);
-
-    if (testDNN) {
-        createTestFactories();
-    } else {
-        createFactories();
+    if (_useTestFactories) {
+        setDefaultLogger();
     }
+    createFactories();
 }
 
 StreamingFactoryProvider::StreamingFactoryProvider(
@@ -103,7 +102,9 @@ void StreamingFactoryProvider::setDefaultLogger(const std::string &logFileName, 
 
 void StreamingFactoryProvider::createFactories()
 {
-    check_license();
+    if (!_useTestFactories) {
+        check_license();
+    }
 
     int poolSize = _streamingConfigurationManager->getStreamingConfiguration().poolSize;
     auto eventEmitterFactory = std::make_shared<EventEmitterFactory>(_container, poolSize);
@@ -116,7 +117,7 @@ void StreamingFactoryProvider::createFactories()
             eventLoopFactory,
             _container,
             _streamingConfigurationManager.get(),
-            false);
+            _useTestFactories);
 
     _smartFactoryUChar =
         std::make_shared<kpsr::streaming::SmartPublishSubscribeFactory<UI8AlignedVector>>(
@@ -124,7 +125,7 @@ void StreamingFactoryProvider::createFactories()
             eventLoopFactory,
             _container,
             _streamingConfigurationManager.get(),
-            false);
+            _useTestFactories);
 
     _smartFactoryFloat32 =
         std::make_shared<kpsr::streaming::SmartPublishSubscribeFactory<F32AlignedVector>>(
@@ -132,41 +133,7 @@ void StreamingFactoryProvider::createFactories()
             eventLoopFactory,
             _container,
             _streamingConfigurationManager.get(),
-            false);
-}
-
-void StreamingFactoryProvider::createTestFactories()
-{
-    setDefaultLogger();
-
-    int poolSize = _streamingConfigurationManager->getStreamingConfiguration().poolSize;
-    auto eventEmitterFactory = std::make_shared<EventEmitterFactory>(_container, poolSize);
-    auto eventLoopFactory = std::make_shared<EventLoopFactory>(_container,
-                                                               _streamingConfigurationManager.get());
-
-    _smartFactoryChar =
-        std::make_shared<kpsr::streaming::SmartPublishSubscribeFactory<I8AlignedVector>>(
-            eventEmitterFactory,
-            eventLoopFactory,
-            _container,
-            _streamingConfigurationManager.get(),
-            true);
-
-    _smartFactoryUChar =
-        std::make_shared<kpsr::streaming::SmartPublishSubscribeFactory<UI8AlignedVector>>(
-            eventEmitterFactory,
-            eventLoopFactory,
-            _container,
-            _streamingConfigurationManager.get(),
-            true);
-
-    _smartFactoryFloat32 =
-        std::make_shared<kpsr::streaming::SmartPublishSubscribeFactory<F32AlignedVector>>(
-            eventEmitterFactory,
-            eventLoopFactory,
-            _container,
-            _streamingConfigurationManager.get(),
-            true);
+            _useTestFactories);
 }
 
 void StreamingFactoryProvider::initForEnvironment(
@@ -194,13 +161,8 @@ void StreamingFactoryProvider::initForEnvironment(
             streamingConfigurationFile);
     }
 
-    bool testDNN = false;
-    environment->getPropertyBool("test_dnn", testDNN);
-    if (testDNN) {
-        createTestFactories();
-    } else {
-        createFactories();
-    }
+    environment->getPropertyBool("test_dnn", _useTestFactories);
+    createFactories();
 }
 
 void StreamingFactoryProvider::setDefaultStreaming(
@@ -276,7 +238,6 @@ StreamingConfigurationManager *StreamingFactoryProvider::getStreamingConfigurati
 
 void StreamingFactoryProvider::start()
 {
-    check_license();
     _smartFactoryChar->startup();
     _smartFactoryUChar->startup();
     _smartFactoryFloat32->startup();

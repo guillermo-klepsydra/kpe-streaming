@@ -55,3 +55,4 @@ build/*
 
 *.user
 config.h
+tests/data/streaming_conf.json

@@ -68,7 +68,7 @@ protected:
         }
         case 2: {
             spdlog::debug("Streaming Configuration Manager with json policy");
-            std::string jsonFileName = std::string(TEST_DATA) + "/streaming_conf.json";
+            std::string jsonFileName = std::string(TEST_DATA) + "/streaming_conf_policy.json";
             streamingConfigurationManager =
                 std::make_unique<kpsr::streaming::StreamingConfigurationManager>(jsonFileName);
             break;

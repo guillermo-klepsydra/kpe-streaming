@@ -65,12 +65,12 @@ private:
 
     void createFactories();
 
-    void createTestFactories();
-
     std::unique_ptr<StreamingConfigurationManager> _streamingConfigurationManager;
     kpsr::Container *_container;
 
     std::vector<std::string> _procIntensiveStreams;
+
+    bool _useTestFactories;
 
     std::shared_ptr<PublishSubscribeFactory<F32AlignedVector>> _smartFactoryFloat32;
     std::shared_ptr<PublishSubscribeFactory<I8AlignedVector>> _smartFactoryChar;

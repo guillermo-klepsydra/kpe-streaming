@@ -39,4 +39,7 @@ set(TEST_DATA ${CMAKE_CURRENT_SOURCE_DIR}/data )
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/common/config.h.in"
                 "${CMAKE_CURRENT_SOURCE_DIR}/common/config.h" )
 
+configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/data/streaming_conf.json.in"
+                "${CMAKE_CURRENT_SOURCE_DIR}/data/streaming_conf.json" )
+
 add_subdirectory(streaming_tests)

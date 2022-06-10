@@ -73,6 +73,11 @@ TEST_P(StreamingFactoryProviderDefault, GetNewPubSubTest)
     ASSERT_NO_THROW(sut.stop());
 }
 
+TEST_P(StreamingFactoryProviderDefault, StreamingConfigurationManagerTest)
+{
+    ASSERT_NE(sut.getStreamingConfigurationManager(), nullptr);
+}
+
 TEST_P(StreamingFactoryProviderDefault, GetExistingPubSubTest)
 {
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
@@ -119,15 +124,17 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFloat32)
     kpsr::streaming::StreamingFactoryProvider sut(&defaultThreadDistributionPolicyFactoryImpl,
                                                   &environment);
 
+    ASSERT_NE(sut.getStreamingConfigurationManager(), nullptr);
+
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
         streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
     ASSERT_NE(streamingFactoryFloat32.get(), nullptr);
-    streamingFactoryFloat32->getPublisher("conv", 10);
-    streamingFactoryFloat32->getPublisherMulti("reluAlign", 10, 2);
-    streamingFactoryFloat32->getPublisher("relu", 10);
-    streamingFactoryFloat32->getSubscriber("conv", 10);
-    streamingFactoryFloat32->getSubscriberMulti("reluAlign", 10, 2);
-    streamingFactoryFloat32->getSubscriber("relu", 10);
+    ASSERT_NE(streamingFactoryFloat32->getPublisher("conv", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getPublisherMulti("reluAlign", 10, 2), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getPublisher("relu", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriber("conv", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriberMulti("reluAlign", 10, 2), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriber("relu", 10), nullptr);
 
     ASSERT_NO_THROW(sut.start());
     ASSERT_NO_THROW(sut.stop());
@@ -151,6 +158,8 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionChar)
         defaultThreadDistributionPolicyFactoryImpl;
     kpsr::streaming::StreamingFactoryProvider sut(&defaultThreadDistributionPolicyFactoryImpl,
                                                   &environment);
+
+    ASSERT_NE(sut.getStreamingConfigurationManager(), nullptr);
 
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::I8AlignedVector>>
         streamingFactoryChar = sut.getSmartFactoryChar();
@@ -187,19 +196,42 @@ TEST(StreamingFactoryProvider, EnvironmentForProductionFileContainer)
     environment.setPropertyInt("number_of_cores", 2);
     environment.setPropertyString("processor_intensive_layers", "max");
 
-    std::string jsonFile = std::string(TEST_DATA) + "/streaming_conf.json";
+    std::string jsonFile = std::string(TEST_DATA) + "/streaming_conf_policy.json";
     environment.setPropertyString("streaming_conf_file", jsonFile);
 
     kpsr::streaming::StreamingFactoryProvider sut(nullptr, &environment);
 
+    ASSERT_NE(sut.getStreamingConfigurationManager(), nullptr);
+
     std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
         streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
-    streamingFactoryFloat32->getPublisher("conv", 10);
-    streamingFactoryFloat32->getPublisherMulti("reluAlign", 10, 2);
-    streamingFactoryFloat32->getPublisher("relu", 10);
-    streamingFactoryFloat32->getSubscriber("conv", 10);
-    streamingFactoryFloat32->getSubscriberMulti("reluAlign", 10, 2);
-    streamingFactoryFloat32->getSubscriber("relu", 10);
+    ASSERT_NE(streamingFactoryFloat32->getPublisher("conv", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getPublisherMulti("reluAlign", 10, 2), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getPublisher("relu", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriber("conv", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriberMulti("reluAlign", 10, 2), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriber("relu", 10), nullptr);
+
+    ASSERT_NO_THROW(sut.start());
+    ASSERT_NO_THROW(sut.stop());
+}
+
+TEST(StreamingFactoryProvider, ConstructorFromEnvFile)
+{
+    std::string jsonConfFile = std::string(TEST_DATA) + "/streaming_conf.json";
+
+    kpsr::streaming::StreamingFactoryProvider sut(nullptr, jsonConfFile);
+
+    ASSERT_NE(sut.getStreamingConfigurationManager(), nullptr);
+
+    std::shared_ptr<kpsr::streaming::PublishSubscribeFactory<kpsr::streaming::F32AlignedVector>>
+        streamingFactoryFloat32 = sut.getSmartFactoryFloat32();
+    ASSERT_NE(streamingFactoryFloat32->getPublisher("conv", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getPublisherMulti("reluAlign", 10, 2), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getPublisher("relu", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriber("conv", 10), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriberMulti("reluAlign", 10, 2), nullptr);
+    ASSERT_NE(streamingFactoryFloat32->getSubscriber("relu", 10), nullptr);
 
     ASSERT_NO_THROW(sut.start());
     ASSERT_NO_THROW(sut.stop());

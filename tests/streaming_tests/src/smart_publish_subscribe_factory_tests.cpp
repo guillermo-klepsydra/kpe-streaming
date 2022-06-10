@@ -178,6 +178,7 @@ TEST_P(SmartPublishSubscribeFactoryTest, getPubSubF32Test)
                                             container,
                                             streamingConfigurationManager.get(),
                                             useTestFactory);
+    ASSERT_NO_THROW(smartFactoryF32->start());
 
     for (auto stepName : stepNames) {
         kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::F32AlignedVector>>
@@ -214,6 +215,7 @@ TEST_P(SmartPublishSubscribeFactoryTest, getPubSubF32Test)
             ASSERT_EQ(nullptr, publisherMulti);
         }
     }
+    ASSERT_NO_THROW(smartFactoryF32->stop());
 }
 
 TEST_P(SmartPublishSubscribeFactoryTest, getPubSubCharTest)
@@ -224,6 +226,7 @@ TEST_P(SmartPublishSubscribeFactoryTest, getPubSubCharTest)
                                            container,
                                            streamingConfigurationManager.get(),
                                            useTestFactory);
+    ASSERT_NO_THROW(smartFactoryChar->start());
 
     for (auto stepName : stepNames) {
         kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::I8AlignedVector>>
@@ -260,6 +263,7 @@ TEST_P(SmartPublishSubscribeFactoryTest, getPubSubCharTest)
             ASSERT_EQ(nullptr, publisherMulti);
         }
     }
+    ASSERT_NO_THROW(smartFactoryChar->stop());
 }
 
 TEST_P(SmartPublishSubscribeFactoryTest, getPubSubUCharTest)
@@ -270,6 +274,7 @@ TEST_P(SmartPublishSubscribeFactoryTest, getPubSubUCharTest)
                                             container,
                                             streamingConfigurationManager.get(),
                                             useTestFactory);
+    ASSERT_NO_THROW(smartFactoryUChar->start());
 
     for (auto stepName : stepNames) {
         kpsr::Subscriber<kpsr::streaming::DataBatchWithId<kpsr::streaming::UI8AlignedVector>>
@@ -306,4 +311,5 @@ TEST_P(SmartPublishSubscribeFactoryTest, getPubSubUCharTest)
             ASSERT_EQ(nullptr, publisherMulti);
         }
     }
+    ASSERT_NO_THROW(smartFactoryUChar->stop());
 }
