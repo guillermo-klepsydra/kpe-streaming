@@ -177,16 +177,34 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Build kpe-streming
-        run: |
-          mkdir build && cd build
-          cmake -DKPSR_WITH_DOXYGEN=true -DCMAKE_BUILD_TYPE=Debug -DKPSR_ENABLE_TESTS=true -DKPSR_ENABLE_EXAMPLES=false ../
+        run: >
+          mkdir build && cd build &&
+          cmake -DKPSR_WITH_DOXYGEN=true -DCMAKE_BUILD_TYPE=Debug -DKPSR_ENABLE_TESTS=false -DKPSR_ENABLE_EXAMPLES=false 
+          -DKPSR_VERSION_PATCH=$(git rev-parse --short HEAD) ../ &&
           make -j$(nproc)
 
-      - name: Unit tests
-        timeout-minutes: 5
+      - name: Create deb packages
         run: |
-          cd build
-          make test
+          cpack -G DEB
+          ls -la | grep deb
+        working-directory: build
+
+      - name: Store deb packages
+        uses: actions/upload-artifact@v2
+        with:
+          name: deb-packages-${{ matrix.name }}
+          path: build/*.deb
+
+      - name: Create tarballs
+        run: |
+          sudo cpack -G TGZ
+        working-directory: build
+
+      - name: Store tarballs
+        uses: actions/upload-artifact@v2
+        with:
+          name: tgz-packages-${{ matrix.name }}
+          path: build/*.tar.gz
 
       - name: Upload logs on failure
         if: failure()

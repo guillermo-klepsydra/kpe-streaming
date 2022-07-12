@@ -29,15 +29,17 @@ message(STATUS "kpsr-build path: " ${KPSR_BUILD_PATH})
 
 if (KPSR_WITH_FREERTOS)
    include(${KPSR_BUILD_PATH}/freeRTOS/cmake/compiler.cmake)
+   string(APPEND KPSR_PACKAGE_OPTIONS "-freertos")
 endif()
 
 IF(KPSR_RTEMS5_ZYNQ_ZC706)
   include(${KPSR_BUILD_PATH}/rtems/rtems_zynq_zc706.cmake)
+  string(APPEND KPSR_PACKAGE_OPTIONS "-rtems5-zc706")
 ENDIF()
 
 SET(PROJ_MAIN_NAME "streaming")
 
-PROJECT(${PROJ_MAIN_NAME})
+PROJECT("kpe-streaming")
 
 # Configuration types
 SET(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Configs" FORCE)
@@ -257,8 +259,7 @@ else()
 ENDIF()
 
 
-set(DEF_INSTALL_CMAKE_DIR lib/cmake/klepsydrastreaming)
-set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
+set(INSTALL_CMAKE_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/klepsydra)
 
 # Make relative paths absolute (needed later on)
 foreach(p LIB BIN INCLUDE CMAKE)
@@ -291,9 +292,29 @@ configure_file(KlepsydraStreamingConfigVersion.cmake.in
 install(FILES
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/KlepsydraStreamingConfig.cmake"
   "${PROJECT_BINARY_DIR}/KlepsydraStreamingConfigVersion.cmake"
-  DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+  DESTINATION "${INSTALL_CMAKE_DIR}" 
+  COMPONENT dev
+)
 
 # Install the export set for use with the install-tree
 install(EXPORT KlepsydraStreamingTargets DESTINATION
-  "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+  "${INSTALL_CMAKE_DIR}" COMPONENT dev
+)
 
+# PACKAGING
+if(NOT DEFINED KPSR_VERSION_MAJOR)
+  set(KPSR_VERSION_MAJOR ${KLEPSYDRA_STREAMING_VERSION_MAJOR})
+endif()
+
+if(NOT DEFINED KPSR_VERSION_MINOR)
+  set(KPSR_VERSION_MINOR ${KLEPSYDRA_STREAMING_VERSION_MINOR})
+endif()
+
+if(NOT DEFINED KPSR_VERSION_PATCH)
+  set(KPSR_VERSION_PATCH ${KLEPSYDRA_STREAMING_VERSION_PATCH})
+endif()
+
+set(KPSR_PACKAGE_DESCRIPTION "Klepsydra SDK Streaming Libraries")
+set(KPSR_PACKAGE_DESCRIPTION_SUMMARY "Klepsydra SDK Streaming Libraries")
+
+include(KlepsydraPackaging)
