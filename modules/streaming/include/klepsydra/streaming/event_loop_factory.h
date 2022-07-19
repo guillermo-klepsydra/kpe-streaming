@@ -26,7 +26,7 @@
 namespace kpsr {
 namespace streaming {
 
-const int EVENT_LOOP_SIZE = 32;
+const int EVENT_LOOP_SIZE = 128;
 
 using FactoryEventLoopType = kpsr::high_performance::EventLoopMiddlewareProvider<EVENT_LOOP_SIZE>;
 using EventLoopPtr = std::shared_ptr<FactoryEventLoopType>;
